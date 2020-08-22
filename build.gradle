@@ -1,6 +1,6 @@
 plugins {
-    id 'com.github.ben-manes.versions' version '0.29.0'
-    id 'com.github.spotbugs' version '4.5.0' apply false
+    id 'com.github.ben-manes.versions'
+    id 'com.github.spotbugs' apply false
 }
 
 group 'se.fnord'
@@ -10,42 +10,29 @@ ext {
     isTravis = System.getenv('TRAVIS') ? true : false
     isRelease = !isTravis && !version.endsWith("SNAPSHOT")
 
-    ossrhUsername = System.getenv('OSSRH_USERNAME')
-    ossrhPassword = System.getenv('OSSRH_PASSWORD')
+    releaseRepositoryUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+    snapshotRepositoryUrl = "https://oss.sonatype.org/content/repositories/snapshots/"
+
+    repositoryUrl = isRelease ? releaseRepositoryUrl : snapshotRepositoryUrl
 }
 
-apply plugin: 'java-platform'
-
-javaPlatform {
-    allowDependencies()
-}
-
-dependencies {
-    constraints {
-        api("net.javacrumbs.json-unit:json-unit:${jsonUnit}")
-        api("net.javacrumbs.json-unit:json-unit-fluent:${jsonUnit}")
-    }
-
-    api(enforcedPlatform("org.apache.logging.log4j:log4j-bom:${log4j}"))
-    api(enforcedPlatform("com.fasterxml.jackson:jackson-bom:${jackson}"))
-    api(enforcedPlatform("org.junit:junit-bom:${junit5}"))
+repositories {
+    mavenCentral()
 }
 
 
 subprojects {
     apply plugin: 'java-library'
-    apply plugin: 'maven'
+    apply plugin: 'maven-publish'
     apply plugin: 'signing'
     apply plugin: 'com.github.spotbugs'
 
-    task javadocJar(type: Jar) {
-        archiveClassifier = 'javadoc'
-        from javadoc
-    }
+    group rootProject.group
+    version rootProject.version
 
-    task sourcesJar(type: Jar) {
-        archiveClassifier = 'sources'
-        from sourceSets.main.allJava
+    java {
+        withJavadocJar()
+        withSourcesJar()
     }
 
     artifacts {
@@ -73,11 +60,6 @@ subprojects {
         options.compilerArgs << "-Xlint:all,-processing" << "-Werror"
     }
 
-    signing {
-        required { isRelease && gradle.taskGraph.hasTask(":uploadArchives") }
-        sign configurations.archives
-    }
-
     test {
         useJUnitPlatform()
         testLogging {
@@ -86,16 +68,20 @@ subprojects {
     }
 
     dependencies {
-        api(enforcedPlatform(rootProject))
-        implementation(enforcedPlatform(rootProject))
-        testImplementation(enforcedPlatform(rootProject))
-        annotationProcessor(enforcedPlatform(rootProject))
-        testAnnotationProcessor(enforcedPlatform(rootProject))
+        constraints {
+            testImplementation("net.javacrumbs.json-unit:json-unit:${jsonUnit}")
+            testImplementation("net.javacrumbs.json-unit:json-unit-fluent:${jsonUnit}")
+        }
+
+        implementation(enforcedPlatform("org.apache.logging.log4j:log4j-bom:${log4j}"))
+        annotationProcessor(enforcedPlatform("org.apache.logging.log4j:log4j-bom:${log4j}"))
+        testImplementation(enforcedPlatform("com.fasterxml.jackson:jackson-bom:${jackson}"))
+        testImplementation(enforcedPlatform("org.junit:junit-bom:${junit5}"))
     }
 }
 
 wrapper {
-    gradleVersion = '6.6'
+    gradleVersion = "${gradleVersion}"
 }
 
 project(':log4j2-tagged-message') {
@@ -107,47 +93,59 @@ project(':log4j2-tagged-message') {
         testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
     }
 
-    uploadArchives {
-        repositories {
-            mavenDeployer {
-                beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-                pom.project {
-                    name project.name
-                    packaging 'jar'
-                    description 'Tagged message type for Log4J2'
-                    url 'https://github.com/log4j2-logstash'
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                from components.java
+                withoutBuildIdentifier()
+                versionMapping {
+                    usage('java-api') {
+                        fromResolutionOf('runtimeClasspath')
+                    }
+                    usage('java-runtime') {
+                        fromResolutionResult()
+                    }
+                }
+                pom {
+                    description = 'Tagged message type for Log4J2'
+                    url = 'https://github.com/log4j2-logstash'
+                    packaging = 'jar'
 
                     scm {
-                        url 'scm:git:https://github.com/gsson/log4j2-logstash'
-                        connection 'scm:git:git@github.com:/gsson/log4j2-logstash'
-                        developerConnection 'scm:git:git@github.com:/gsson/log4j2-logstash'
+                        url = 'scm:git:https://github.com/gsson/log4j2-logstash'
+                        connection = 'scm:git:git@github.com:/gsson/log4j2-logstash'
+                        developerConnection = 'scm:git:git@github.com:/gsson/log4j2-logstash'
                     }
 
                     licenses {
                         license {
-                            name 'The Apache Software License, Version 2.0'
-                            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                            distribution 'repo'
+                            name = 'Apache-2.0'
+                            url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                            distribution = 'repo'
                         }
                     }
 
                     developers {
                         developer {
-                            id 'gsson'
-                            name 'Henrik Gustafsson'
+                            id = 'gsson'
+                            name = 'Henrik Gustafsson'
                         }
                     }
                 }
-
-                repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-                    authentication(userName: ossrhUsername, password: ossrhPassword)
-                }
-
-                snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
-                    authentication(userName: ossrhUsername, password: ossrhPassword)
+                repositories {
+                    maven {
+                        url = repositoryUrl
+                        credentials(PasswordCredentials)
+                    }
                 }
             }
         }
+    }
+
+    signing {
+        required { isRelease && gradle.taskGraph.hasTask("publish") }
+        useGpgCmd()
+        sign publishing.publications.mavenJava
     }
 }
 
@@ -159,7 +157,6 @@ project(':log4j2-logstash-layout') {
 
         implementation "org.apache.logging.log4j:log4j-core"
         annotationProcessor "org.apache.logging.log4j:log4j-core"
-        testAnnotationProcessor "org.apache.logging.log4j:log4j-core"
 
         testImplementation "org.junit.jupiter:junit-jupiter-api"
         testImplementation "org.junit.jupiter:junit-jupiter-params"
@@ -171,46 +168,52 @@ project(':log4j2-logstash-layout') {
         testImplementation "net.javacrumbs.json-unit:json-unit-fluent"
     }
 
-    uploadArchives {
-        repositories {
-            mavenDeployer {
-                beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-                pom.project {
-                    name project.name
-                    packaging 'jar'
-                    description 'Logstash json event layout for Log4J2'
-                    url 'https://github.com/gsson/log4j2-logstash'
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                from components.java
+                withoutBuildIdentifier()
+
+                pom {
+                    description = 'Logstash json event layout for Log4J2'
+                    url = 'https://github.com/log4j2-logstash'
+                    packaging = 'jar'
 
                     scm {
-                        url 'scm:git:https://github.com/gsson/log4j2-logstash'
-                        connection 'scm:git:git@github.com:/gsson/log4j2-logstash'
-                        developerConnection 'scm:git:git@github.com:/gsson/log4j2-logstash'
+                        url = 'scm:git:https://github.com/gsson/log4j2-logstash'
+                        connection = 'scm:git:git@github.com:/gsson/log4j2-logstash'
+                        developerConnection = 'scm:git:git@github.com:/gsson/log4j2-logstash'
                     }
 
                     licenses {
                         license {
-                            name 'The Apache Software License, Version 2.0'
-                            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                            distribution 'repo'
+                            name = 'Apache-2.0'
+                            url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                            distribution = 'repo'
                         }
                     }
 
                     developers {
                         developer {
-                            id 'gsson'
-                            name 'Henrik Gustafsson'
+                            id = 'gsson'
+                            name = 'Henrik Gustafsson'
                         }
                     }
                 }
-
-                repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-                    authentication(userName: ossrhUsername, password: ossrhPassword)
-                }
-
-                snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
-                    authentication(userName: ossrhUsername, password: ossrhPassword)
+                repositories {
+                    maven {
+                        url = repositoryUrl
+                        credentials(PasswordCredentials)
+                    }
                 }
             }
         }
+    }
+
+    signing {
+        required { isRelease && gradle.taskGraph.hasTask("publish") }
+
+        useGpgCmd()
+        sign publishing.publications.mavenJava
     }
 }

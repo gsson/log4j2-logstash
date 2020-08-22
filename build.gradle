@@ -116,7 +116,6 @@ project(':log4j2-logstash-bom') {
 
     signing {
         required { isRelease && gradle.taskGraph.hasTask("publish") }
-        useGpgCmd()
         sign publishing.publications.bom
     }
 }
@@ -181,7 +180,6 @@ project(':log4j2-tagged-message') {
 
     signing {
         required { isRelease && gradle.taskGraph.hasTask("publish") }
-        useGpgCmd()
         sign publishing.publications.mavenJava
     }
 }
@@ -249,8 +247,6 @@ project(':log4j2-logstash-layout') {
 
     signing {
         required { isRelease && gradle.taskGraph.hasTask("publish") }
-
-        useGpgCmd()
         sign publishing.publications.mavenJava
     }
 }

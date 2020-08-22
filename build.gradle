@@ -21,7 +21,7 @@ repositories {
 }
 
 
-subprojects {
+configure(subprojects.findAll {it.name != 'log4j2-logstash-bom'}) {
     apply plugin: 'java-library'
     apply plugin: 'maven-publish'
     apply plugin: 'signing'
@@ -82,6 +82,43 @@ subprojects {
 
 wrapper {
     gradleVersion = "${gradleVersion}"
+}
+
+project(':log4j2-logstash-bom') {
+    apply plugin: 'java-platform'
+    apply plugin: 'maven-publish'
+    apply plugin: 'signing'
+
+    group rootProject.group
+    version rootProject.version
+
+    dependencies {
+        constraints {
+            runtime project(":log4j2-logstash-layout")
+            runtime project(":log4j2-tagged-message")
+        }
+    }
+
+    publishing {
+        publications {
+            bom(MavenPublication) {
+                from components.javaPlatform
+                withoutBuildIdentifier()
+                repositories {
+                    maven {
+                        url = repositoryUrl
+                        credentials(PasswordCredentials)
+                    }
+                }
+            }
+        }
+    }
+
+    signing {
+        required { isRelease && gradle.taskGraph.hasTask("publish") }
+        useGpgCmd()
+        sign publishing.publications.bom
+    }
 }
 
 project(':log4j2-tagged-message') {

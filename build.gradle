@@ -1,0 +1,135 @@
+buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+}
+
+plugins {
+    id 'java-library'
+    id 'maven'
+    id 'signing'
+
+    id 'com.github.ben-manes.versions' version '0.21.0'
+    id 'com.github.spotbugs' version '1.6.10'
+}
+
+task javadocJar(type: Jar) {
+    archiveClassifier = 'javadoc'
+    from javadoc
+}
+
+task sourcesJar(type: Jar) {
+    archiveClassifier = 'sources'
+    from sourceSets.main.allJava
+}
+
+artifacts {
+    archives javadocJar, sourcesJar
+}
+
+group 'se.fnord'
+version '0.4-SNAPSHOT'
+
+ext {
+    jackson = '2.9.8'
+    log4j = '2.11.2'
+
+    junit5 = '5.4.0'
+    isTravis = System.getenv('TRAVIS') ? true : false
+    isRelease = !isTravis && !version.endsWith("SNAPSHOT")
+
+    ossrhUsername = System.getenv('OSSRH_USERNAME')
+    ossrhPassword = System.getenv('OSSRH_PASSWORD')
+}
+
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+configurations.all {
+    resolutionStrategy {
+        failOnVersionConflict()
+    }
+}
+
+compileJava {
+    options.compilerArgs << "-Xlint:all,-classfile" << "-Werror"
+}
+
+compileTestJava {
+    options.compilerArgs << "-Xlint:all,-classfile" << "-Werror"
+}
+
+signing {
+    required { isRelease && gradle.taskGraph.hasTask(":uploadArchives") }
+    sign configurations.archives
+}
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        events = ['failed', 'skipped']
+    }
+}
+
+dependencies {
+    api "org.apache.logging.log4j:log4j-api:${log4j}"
+
+    testImplementation "org.junit.jupiter:junit-jupiter-api:${junit5}"
+    testImplementation "org.junit.jupiter:junit-jupiter-params:${junit5}"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junit5}"
+}
+
+wrapper {
+    gradleVersion = '5.2.1'
+}
+
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+            pom.project {
+                name project.name
+                packaging 'jar'
+                description 'Tagged message type for Log4J2'
+                url 'https://github.com/gsson/log4j2-tagged-message'
+
+                scm {
+                    url 'scm:git:https://github.com/gsson/log4j2-tagged-message'
+                    connection 'scm:git:git@github.com:/gsson/log4j2-tagged-message'
+                    developerConnection 'scm:git:git@github.com:/gsson/log4j2-tagged-message'
+                }
+
+                licenses {
+                    license {
+                        name 'The Apache Software License, Version 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        distribution 'repo'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id 'gsson'
+                        name 'Henrik Gustafsson'
+                    }
+                }
+            }
+
+            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                authentication(userName: ossrhUsername, password: ossrhPassword)
+            }
+
+            snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
+                authentication(userName: ossrhUsername, password: ossrhPassword)
+            }
+        }
+    }
+}

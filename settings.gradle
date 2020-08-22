@@ -1,0 +1,4 @@
+include 'log4j2-tagged-message'
+
+rootProject.name = 'log4j2-logstash-parent'
+

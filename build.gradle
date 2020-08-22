@@ -109,6 +109,7 @@ project(':log4j2-logstash-bom') {
                 from components.javaPlatform
                 withoutBuildIdentifier()
                 pom {
+                    name = project.name
                     description = 'Bill of materials for log4j2-logstash projects'
                     url = 'https://github.com/log4j2-logstash'
                     packaging = 'pom'
@@ -167,6 +168,7 @@ project(':log4j2-tagged-message') {
                 withoutBuildIdentifier()
 
                 pom {
+                    name = project.name
                     description = 'Tagged message type for Log4J2'
                     url = 'https://github.com/log4j2-logstash'
                     packaging = 'jar'
@@ -234,6 +236,7 @@ project(':log4j2-logstash-layout') {
                 withoutBuildIdentifier()
 
                 pom {
+                    name = project.name
                     description = 'Logstash json event layout for Log4J2'
                     url = 'https://github.com/log4j2-logstash'
                     packaging = 'jar'

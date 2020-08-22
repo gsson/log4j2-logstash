@@ -99,11 +99,42 @@ project(':log4j2-logstash-bom') {
         }
     }
 
+    tasks.withType(GenerateModuleMetadata) {
+        enabled = false
+    }
+
     publishing {
         publications {
             bom(MavenPublication) {
                 from components.javaPlatform
                 withoutBuildIdentifier()
+                pom {
+                    description = 'Bill of materials for log4j2-logstash projects'
+                    url = 'https://github.com/log4j2-logstash'
+                    packaging = 'pom'
+
+                    scm {
+                        url = 'scm:git:https://github.com/gsson/log4j2-logstash'
+                        connection = 'scm:git:git@github.com:/gsson/log4j2-logstash'
+                        developerConnection = 'scm:git:git@github.com:/gsson/log4j2-logstash'
+                    }
+
+                    licenses {
+                        license {
+                            name = 'Apache-2.0'
+                            url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                            distribution = 'repo'
+                        }
+                    }
+
+                    developers {
+                        developer {
+                            id = 'gsson'
+                            name = 'Henrik Gustafsson'
+                        }
+                    }
+                }
+
                 repositories {
                     maven {
                         url = repositoryUrl
@@ -134,14 +165,7 @@ project(':log4j2-tagged-message') {
             mavenJava(MavenPublication) {
                 from components.java
                 withoutBuildIdentifier()
-                versionMapping {
-                    usage('java-api') {
-                        fromResolutionOf('runtimeClasspath')
-                    }
-                    usage('java-runtime') {
-                        fromResolutionResult()
-                    }
-                }
+
                 pom {
                     description = 'Tagged message type for Log4J2'
                     url = 'https://github.com/log4j2-logstash'

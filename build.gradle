@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'se.fnord'
-version '0.4-SNAPSHOT'
+version '0.6-SNAPSHOT'
 
 ext {
     isTravis = System.getenv('TRAVIS') ? true : false

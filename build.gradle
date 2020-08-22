@@ -49,11 +49,11 @@ subprojects {
     }
 
     compileJava {
-        options.compilerArgs << "-Xlint:all,-classfile,-processing" << "-Werror"
+        options.compilerArgs << "-Xlint:all,-processing" << "-Werror"
     }
 
     compileTestJava {
-        options.compilerArgs << "-Xlint:all,-classfile,-processing" << "-Werror"
+        options.compilerArgs << "-Xlint:all,-processing" << "-Werror"
     }
 
     signing {

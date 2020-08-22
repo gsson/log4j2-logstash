@@ -1,5 +1,4 @@
 plugins {
-
     id 'com.github.ben-manes.versions' version '0.29.0'
     id 'com.github.spotbugs' version '4.5.0' apply false
 }
@@ -14,6 +13,24 @@ ext {
     ossrhUsername = System.getenv('OSSRH_USERNAME')
     ossrhPassword = System.getenv('OSSRH_PASSWORD')
 }
+
+apply plugin: 'java-platform'
+
+javaPlatform {
+    allowDependencies()
+}
+
+dependencies {
+    constraints {
+        api("net.javacrumbs.json-unit:json-unit:${jsonUnit}")
+        api("net.javacrumbs.json-unit:json-unit-fluent:${jsonUnit}")
+    }
+
+    api(enforcedPlatform("org.apache.logging.log4j:log4j-bom:${log4j}"))
+    api(enforcedPlatform("com.fasterxml.jackson:jackson-bom:${jackson}"))
+    api(enforcedPlatform("org.junit:junit-bom:${junit5}"))
+}
+
 
 subprojects {
     apply plugin: 'java-library'
@@ -68,6 +85,13 @@ subprojects {
         }
     }
 
+    dependencies {
+        api(enforcedPlatform(rootProject))
+        implementation(enforcedPlatform(rootProject))
+        testImplementation(enforcedPlatform(rootProject))
+        annotationProcessor(enforcedPlatform(rootProject))
+        testAnnotationProcessor(enforcedPlatform(rootProject))
+    }
 }
 
 wrapper {
@@ -76,11 +100,11 @@ wrapper {
 
 project(':log4j2-tagged-message') {
     dependencies {
-        api "org.apache.logging.log4j:log4j-api:${log4j}"
+        api "org.apache.logging.log4j:log4j-api"
 
-        testImplementation "org.junit.jupiter:junit-jupiter-api:${junit5}"
-        testImplementation "org.junit.jupiter:junit-jupiter-params:${junit5}"
-        testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junit5}"
+        testImplementation "org.junit.jupiter:junit-jupiter-api"
+        testImplementation "org.junit.jupiter:junit-jupiter-params"
+        testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
     }
 
     uploadArchives {
@@ -130,20 +154,21 @@ project(':log4j2-tagged-message') {
 
 project(':log4j2-logstash-layout') {
     dependencies {
-        implementation "org.apache.logging.log4j:log4j-core:${log4j}"
-        annotationProcessor "org.apache.logging.log4j:log4j-core:${log4j}"
-        testAnnotationProcessor "org.apache.logging.log4j:log4j-core:${log4j}"
-        implementation "org.apache.logging.log4j:log4j-api:${log4j}"
-        implementation project(':log4j2-tagged-message')
+        api "org.apache.logging.log4j:log4j-api"
+        api project(':log4j2-tagged-message')
 
-        testImplementation "org.junit.jupiter:junit-jupiter-api:${junit5}"
-        testImplementation "org.junit.jupiter:junit-jupiter-params:${junit5}"
-        testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junit5}")
+        implementation "org.apache.logging.log4j:log4j-core"
+        annotationProcessor "org.apache.logging.log4j:log4j-core"
+        testAnnotationProcessor "org.apache.logging.log4j:log4j-core"
 
-        testImplementation "com.fasterxml.jackson.core:jackson-core:${jackson}"
-        testImplementation "com.fasterxml.jackson.core:jackson-databind:${jackson}"
-        testImplementation "net.javacrumbs.json-unit:json-unit:${jsonUnit}"
-        testImplementation "net.javacrumbs.json-unit:json-unit-fluent:${jsonUnit}"
+        testImplementation "org.junit.jupiter:junit-jupiter-api"
+        testImplementation "org.junit.jupiter:junit-jupiter-params"
+        testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+
+        testImplementation "com.fasterxml.jackson.core:jackson-core"
+        testImplementation "com.fasterxml.jackson.core:jackson-databind"
+        testImplementation "net.javacrumbs.json-unit:json-unit"
+        testImplementation "net.javacrumbs.json-unit:json-unit-fluent"
     }
 
     uploadArchives {

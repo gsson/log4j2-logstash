@@ -1,6 +1,6 @@
 # Logstash json event layout for Log4J2
 
-[![Build Status](https://travis-ci.org/gsson/log4j2-logstash-layout.svg)](https://travis-ci.org/gsson/log4j2-logstash-layout)
+[![Build Status](https://travis-ci.org/gsson/log4j2-logstash)](https://travis-ci.org/gsson/log4j2-logstash)
 
 The goal is to be reasonably performant and (near) garbage-free.
 
@@ -10,7 +10,7 @@ The layout is modelled after [GelfLayout](https://github.com/apache/logging-log4
 
 ## Usage
 
-For printing to standard out in a format suitable for eg. [fluentd](https://www.fluentd.org/):
+For printing to standard out in a format suitable for eg. [fluentd](https://www.fluentd.org/) or [fluent-bit](https://fluentbit.io/):
 ```xml
 <Appenders>
     <Console name="console" target="SYSTEM_OUT">

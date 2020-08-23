@@ -23,6 +23,7 @@ repositories {
 
 configure(subprojects.findAll {it.name != 'log4j2-logstash-bom'}) {
     apply plugin: 'java-library'
+    apply plugin: 'java-test-fixtures'
     apply plugin: 'maven-publish'
     apply plugin: 'signing'
     apply plugin: 'com.github.spotbugs'
@@ -75,8 +76,13 @@ configure(subprojects.findAll {it.name != 'log4j2-logstash-bom'}) {
 
         implementation(enforcedPlatform("org.apache.logging.log4j:log4j-bom:${log4j}"))
         annotationProcessor(enforcedPlatform("org.apache.logging.log4j:log4j-bom:${log4j}"))
+        testFixturesApi(enforcedPlatform("org.apache.logging.log4j:log4j-bom:${log4j}"))
+
         testImplementation(enforcedPlatform("com.fasterxml.jackson:jackson-bom:${jackson}"))
+        testFixturesApi(enforcedPlatform("com.fasterxml.jackson:jackson-bom:${jackson}"))
+
         testImplementation(enforcedPlatform("org.junit:junit-bom:${junit5}"))
+        testFixturesApi(enforcedPlatform("org.junit:junit-bom:${junit5}"))
     }
 }
 
@@ -108,6 +114,7 @@ project(':log4j2-logstash-bom') {
             bom(MavenPublication) {
                 from components.javaPlatform
                 withoutBuildIdentifier()
+
                 pom {
                     name = project.name
                     description = 'Bill of materials for log4j2-logstash projects'
@@ -155,6 +162,8 @@ project(':log4j2-logstash-bom') {
 project(':log4j2-tagged-message') {
     dependencies {
         api "org.apache.logging.log4j:log4j-api"
+        testFixturesApi "org.apache.logging.log4j:log4j-api"
+        testFixturesImplementation "org.junit.jupiter:junit-jupiter-api"
 
         testImplementation "org.junit.jupiter:junit-jupiter-api"
         testImplementation "org.junit.jupiter:junit-jupiter-params"
@@ -166,6 +175,8 @@ project(':log4j2-tagged-message') {
             mavenJava(MavenPublication) {
                 from components.java
                 withoutBuildIdentifier()
+                suppressPomMetadataWarningsFor('testFixturesApiElements')
+                suppressPomMetadataWarningsFor('testFixturesRuntimeElements')
 
                 pom {
                     name = project.name
@@ -234,6 +245,8 @@ project(':log4j2-logstash-layout') {
             mavenJava(MavenPublication) {
                 from components.java
                 withoutBuildIdentifier()
+                suppressPomMetadataWarningsFor('testFixturesApiElements')
+                suppressPomMetadataWarningsFor('testFixturesRuntimeElements')
 
                 pom {
                     name = project.name

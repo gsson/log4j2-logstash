@@ -49,4 +49,14 @@ class TagsFactory {
         }
         return SAFE_TYPES.containsKey(value.getClass()) ? value : value.toString();
     }
+
+    public static Tags compose(Tags first, Tags second) {
+        if (first instanceof Tags0) {
+            return second;
+        }
+        if (second instanceof Tags0) {
+            return first;
+        }
+        return new CompositeTags2(first, second);
+    }
 }

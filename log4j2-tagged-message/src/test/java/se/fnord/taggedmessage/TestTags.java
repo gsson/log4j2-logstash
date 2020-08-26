@@ -45,6 +45,12 @@ public class TestTags {
     }
 
     @Test
+    public void testAddComposite() {
+        assertForEach(Tags.of("a", 1, "b", 2).add(Tags.of("c", 3, "d", 4)),
+            tag("a", 1L), tag("b", 2L), tag("c", 3L), tag("d", 4L));
+    }
+
+    @Test
     public void testNormalisation() {
         assertForEach(Tags.empty().add("a", singletonList(32)), tag("a", "[32]"));
         assertForEach(Tags.of("a", singletonList(32)), tag("a", "[32]"));

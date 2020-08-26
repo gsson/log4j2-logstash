@@ -43,6 +43,10 @@ public interface Tags extends Serializable {
         return TagsFactory.fromMap(tags, this);
     }
 
+    default Tags add(Tags tags) {
+        return TagsFactory.compose(tags, this);
+    }
+
     static Tags of(String key, @Nullable Object value) {
         return new Tags1(key, normaliseObjectValue(value), empty());
     }

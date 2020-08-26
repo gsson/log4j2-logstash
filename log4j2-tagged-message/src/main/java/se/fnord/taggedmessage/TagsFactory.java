@@ -1,5 +1,7 @@
 package se.fnord.taggedmessage;
 
+import edu.umd.cs.findbugs.annotations.Nullable;
+
 import java.util.IdentityHashMap;
 import java.util.Map;
 
@@ -40,7 +42,8 @@ class TagsFactory {
         return new TagsN(tagNames, tagValues, next);
     }
 
-    static Object normaliseObjectValue(Object value) {
+    @Nullable
+    static Object normaliseObjectValue(@Nullable Object value) {
         if (value == null) {
             return null;
         }

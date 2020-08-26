@@ -47,6 +47,24 @@ configure(subprojects.findAll {it.name != 'log4j2-logstash-bom'}) {
         mavenCentral()
     }
 
+    spotbugs {
+        toolVersion = "${spotbugsVersion}"
+    }
+
+    spotbugsMain {
+        reports {
+            html.enabled true
+            xml.enabled false
+        }
+    }
+
+    spotbugsTest {
+        reports {
+            html.enabled true
+            xml.enabled false
+        }
+    }
+
     configurations.all {
         resolutionStrategy {
             failOnVersionConflict()
@@ -74,7 +92,11 @@ configure(subprojects.findAll {it.name != 'log4j2-logstash-bom'}) {
             testImplementation "net.javacrumbs.json-unit:json-unit-fluent:${jsonUnit}"
             testImplementation "org.mockito:mockito-junit-jupiter:${mockitoVersion}"
             testImplementation "org.mockito:mockito-core:${mockitoVersion}"
+
+            api("com.github.spotbugs:spotbugs-annotations:${spotbugsVersion}")
         }
+
+        implementation("com.github.spotbugs:spotbugs-annotations")
 
         implementation(enforcedPlatform("io.projectreactor:reactor-bom:${reactorBomVersion}"))
         testFixturesApi(enforcedPlatform("io.projectreactor:reactor-bom:${reactorBomVersion}"))

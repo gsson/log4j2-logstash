@@ -1,5 +1,6 @@
 package se.fnord.log4j2.logstash;
 
+import edu.umd.cs.findbugs.annotations.Nullable;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.Layout;
 import org.apache.logging.log4j.core.LogEvent;
@@ -63,6 +64,7 @@ public class LogstashLayoutV1 extends AbstractLayout<String> implements StringLa
             implements org.apache.logging.log4j.core.util.Builder<LogstashLayoutV1> {
 
         @PluginBuilderAttribute
+        @Nullable
         private String host;
 
         @PluginBuilderAttribute

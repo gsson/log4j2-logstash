@@ -1,5 +1,6 @@
 package se.fnord.taggedmessage;
 
+import edu.umd.cs.findbugs.annotations.Nullable;
 import org.apache.logging.log4j.message.AsynchronouslyFormattable;
 import org.apache.logging.log4j.message.Message;
 import org.apache.logging.log4j.util.Chars;
@@ -60,9 +61,10 @@ public class TaggedMessage implements Message, StringBuilderFormattable {
     };
     private static final long serialVersionUID = 1L;
     private final Tags tags;
+    @Nullable
     private final Throwable throwable;
 
-    public TaggedMessage(Tags tags, Throwable throwable) {
+    public TaggedMessage(Tags tags, @Nullable Throwable throwable) {
         this.tags = tags;
         this.throwable = throwable;
     }

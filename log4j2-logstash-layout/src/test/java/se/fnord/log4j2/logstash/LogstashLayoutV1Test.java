@@ -1,6 +1,7 @@
 package se.fnord.log4j2.logstash;
 
 import com.fasterxml.jackson.databind.node.TextNode;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.Layout;
 import org.apache.logging.log4j.core.LogEvent;
@@ -28,7 +29,7 @@ class ByteArrayDestination extends OutputStreamManager {
         this(new ByteArrayOutputStream(), "ByteArrayDestination", null, false);
     }
 
-    protected ByteArrayDestination(OutputStream os, String streamName, Layout<?> layout, boolean writeHeader) {
+    protected ByteArrayDestination(OutputStream os, String streamName, @Nullable Layout<?> layout, boolean writeHeader) {
         super(os, streamName, layout, writeHeader);
     }
 

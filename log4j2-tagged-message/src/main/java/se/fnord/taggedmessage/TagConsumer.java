@@ -1,9 +1,11 @@
 package se.fnord.taggedmessage;
 
+import edu.umd.cs.findbugs.annotations.Nullable;
+
 import java.util.Objects;
 
 public interface TagConsumer<T> {
-    default void objectTag(CharSequence key, Object value, T t) {
+    default void objectTag(CharSequence key, @Nullable Object value, @Nullable T t) {
         if (value == null) {
             nullTag(key, t);
         }
@@ -23,9 +25,9 @@ public interface TagConsumer<T> {
             textTag(key, Objects.toString(value), t);
         }
     }
-    void textTag(CharSequence key, CharSequence value, T t);
-    void longTag(CharSequence key, long value, T t);
-    void booleanTag(CharSequence key, boolean value, T t);
-    void doubleTag(CharSequence key, double value, T t);
-    void nullTag(CharSequence key, T t);
+    void textTag(CharSequence key, CharSequence value, @Nullable T t);
+    void longTag(CharSequence key, long value, @Nullable T t);
+    void booleanTag(CharSequence key, boolean value, @Nullable T t);
+    void doubleTag(CharSequence key, double value, @Nullable T t);
+    void nullTag(CharSequence key, @Nullable T t);
 }

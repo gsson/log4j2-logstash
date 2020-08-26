@@ -1,15 +1,18 @@
 package se.fnord.taggedmessage;
 
+import edu.umd.cs.findbugs.annotations.Nullable;
+
 import java.util.function.Consumer;
 
 class Tags1 implements Tags {
     private static final long serialVersionUID = 1L;
     private final CharSequence key;
+    @Nullable
     private final Object value;
 
     private final Tags next;
 
-    Tags1(CharSequence key, Object value, Tags next) {
+    Tags1(CharSequence key, @Nullable Object value, Tags next) {
         this.key = key;
         this.value = value;
         this.next = next;

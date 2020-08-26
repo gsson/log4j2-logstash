@@ -101,6 +101,9 @@ configure(subprojects.findAll {it.name != 'log4j2-logstash-bom'}) {
         implementation(enforcedPlatform("io.projectreactor:reactor-bom:${reactorBomVersion}"))
         testFixturesApi(enforcedPlatform("io.projectreactor:reactor-bom:${reactorBomVersion}"))
 
+        implementation(enforcedPlatform("org.springframework:spring-framework-bom:${springFrameworkBomVersion}"))
+        testFixturesApi(enforcedPlatform("org.springframework:spring-framework-bom:${springFrameworkBomVersion}"))
+
         implementation(enforcedPlatform("org.apache.logging.log4j:log4j-bom:${log4j}"))
         annotationProcessor(enforcedPlatform("org.apache.logging.log4j:log4j-bom:${log4j}"))
         testFixturesApi(enforcedPlatform("org.apache.logging.log4j:log4j-bom:${log4j}"))

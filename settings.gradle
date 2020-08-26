@@ -2,9 +2,13 @@ pluginManagement {
     plugins {
         id 'com.github.spotbugs' version "${spotbugsPluginVersion}"
         id 'com.github.ben-manes.versions' version "${versionsPluginVersion}"
+
+        // Only used for the example project
+        id 'org.springframework.boot' version "${springBootVersion}"
     }
 }
 
+include 'log4j2-logstash-webflux-example'
 include 'log4j2-logstash-reactor'
 include 'log4j2-tagged-message'
 include 'log4j2-logstash-layout'

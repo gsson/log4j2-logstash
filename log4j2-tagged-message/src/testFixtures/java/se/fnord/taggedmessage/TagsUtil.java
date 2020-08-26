@@ -47,6 +47,14 @@ public class TagsUtil {
             this.value = value;
         }
 
+        public CharSequence key() {
+            return key;
+        }
+
+        public Object value() {
+            return value;
+        }
+
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;

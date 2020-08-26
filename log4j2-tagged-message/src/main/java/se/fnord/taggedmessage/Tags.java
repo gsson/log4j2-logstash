@@ -39,6 +39,10 @@ public interface Tags extends Serializable {
         return new TagsN(new String[] { key1, key2, key3 }, new Object[] { normaliseObjectValue(value1), normaliseObjectValue(value2), normaliseObjectValue(value3) }, this);
     }
 
+    default Tags add(String key1, @Nullable Object value1, String key2, @Nullable Object value2, String key3, @Nullable Object value3, String key4, @Nullable Object value4) {
+        return new TagsN(new String[] { key1, key2, key3, key4 }, new Object[] { normaliseObjectValue(value1), normaliseObjectValue(value2), normaliseObjectValue(value3), normaliseObjectValue(value4) }, this);
+    }
+
     default Tags add(Map<String, ?> tags) {
         return TagsFactory.fromMap(tags, this);
     }
@@ -69,6 +73,10 @@ public interface Tags extends Serializable {
 
     static Tags of(String key1, @Nullable Object value1, String key2, @Nullable Object value2, String key3, @Nullable Object value3) {
         return new TagsN(new String[] { key1, key2, key3 }, new Object[] { normaliseObjectValue(value1), normaliseObjectValue(value2), normaliseObjectValue(value3) }, empty());
+    }
+
+    static Tags of(String key1, @Nullable Object value1, String key2, @Nullable Object value2, String key3, @Nullable Object value3, String key4, @Nullable Object value4) {
+        return new TagsN(new String[] { key1, key2, key3, key4 }, new Object[] { normaliseObjectValue(value1), normaliseObjectValue(value2), normaliseObjectValue(value3), normaliseObjectValue(value4) }, empty());
     }
 
     static Tags of(Map<String, ?> tags) {

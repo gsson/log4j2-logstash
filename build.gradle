@@ -131,7 +131,7 @@ project(':log4j2-logstash-bom') {
     dependencies {
         constraints {
             runtime project(":log4j2-logstash-layout")
-            runtime project(":log4j2-tagged-message")
+            runtime project(":log4j2-logstash-taggedmessage")
             runtime project(":log4j2-logstash-reactor")
         }
     }
@@ -190,7 +190,7 @@ project(':log4j2-logstash-bom') {
     }
 }
 
-project(':log4j2-tagged-message') {
+project(':log4j2-logstash-taggedmessage') {
     dependencies {
         api "org.apache.logging.log4j:log4j-api"
         testFixturesApi "org.apache.logging.log4j:log4j-api"
@@ -247,7 +247,7 @@ project(':log4j2-tagged-message') {
     }
 
     signing {
-        required { isRelease && gradle.taskGraph.hasTask(":log4j2-tagged-message:publish") }
+        required { isRelease && gradle.taskGraph.hasTask(":log4j2-logstash-taggedmessage:publish") }
         sign publishing.publications.mavenJava
     }
 }
@@ -256,9 +256,9 @@ project(':log4j2-logstash-reactor') {
     dependencies {
         api "org.apache.logging.log4j:log4j-api"
         api "io.projectreactor:reactor-core"
-        api project(':log4j2-tagged-message')
+        api project(':log4j2-logstash-taggedmessage')
 
-        testImplementation testFixtures(project(":log4j2-tagged-message"))
+        testImplementation testFixtures(project(":log4j2-logstash-taggedmessage"))
 
         testImplementation "org.junit.jupiter:junit-jupiter-api"
         testImplementation "org.junit.jupiter:junit-jupiter-params"
@@ -322,7 +322,7 @@ project(':log4j2-logstash-reactor') {
 project(':log4j2-logstash-layout') {
     dependencies {
         api "org.apache.logging.log4j:log4j-api"
-        api project(':log4j2-tagged-message')
+        api project(':log4j2-logstash-taggedmessage')
 
         implementation "org.apache.logging.log4j:log4j-core"
         annotationProcessor "org.apache.logging.log4j:log4j-core"

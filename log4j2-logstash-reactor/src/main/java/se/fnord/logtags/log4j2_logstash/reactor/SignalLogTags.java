@@ -2,7 +2,7 @@ package se.fnord.logtags.log4j2_logstash.reactor;
 
 import reactor.core.publisher.Signal;
 import reactor.util.context.Context;
-import se.fnord.logtags.log4j2_logstash.taggedmessage.Tags;
+import se.fnord.logtags.tags.Tags;
 
 import java.util.function.BiFunction;
 import java.util.function.Function;

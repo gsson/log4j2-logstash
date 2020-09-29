@@ -1,6 +1,7 @@
 package se.fnord.logtags.log4j2_logstash.taggedmessage;
 
 import org.junit.jupiter.api.Test;
+import se.fnord.logtags.tags.Tags;
 
 import java.time.LocalDateTime;
 

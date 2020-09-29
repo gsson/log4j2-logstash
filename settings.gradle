@@ -12,6 +12,7 @@ include 'log4j2-logstash-webflux-example'
 include 'log4j2-logstash-reactor'
 include 'log4j2-logstash-taggedmessage'
 include 'log4j2-logstash-layout'
+include 'logtags'
 include 'log4j2-logstash-bom'
 
 rootProject.name = 'log4j2-logstash-parent'

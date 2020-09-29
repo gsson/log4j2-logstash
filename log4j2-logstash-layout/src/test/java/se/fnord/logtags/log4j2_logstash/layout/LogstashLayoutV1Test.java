@@ -13,7 +13,7 @@ import org.apache.logging.log4j.message.SimpleMessage;
 import org.apache.logging.log4j.util.SortedArrayStringMap;
 import org.junit.jupiter.api.Test;
 import se.fnord.logtags.log4j2_logstash.taggedmessage.TaggedMessage;
-import se.fnord.logtags.log4j2_logstash.taggedmessage.Tags;
+import se.fnord.logtags.tags.Tags;
 
 import java.io.*;
 import java.util.Collections;

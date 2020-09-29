@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static se.fnord.logtags.log4j2_logstash.taggedmessage.TagsUtil.collectTags;
+import static se.fnord.logtags.tags.TagsUtil.collectTags;
 
 public class TestElapsedTime {
   @Test

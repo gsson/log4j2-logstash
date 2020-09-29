@@ -11,8 +11,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Signal;
 import reactor.util.context.Context;
 import se.fnord.logtags.log4j2_logstash.taggedmessage.TaggedMessage;
-import se.fnord.logtags.log4j2_logstash.taggedmessage.Tags;
-import se.fnord.logtags.log4j2_logstash.taggedmessage.TagsUtil;
+import se.fnord.logtags.tags.Tags;
+import se.fnord.logtags.tags.TagsUtil;
 
 import java.util.List;
 
@@ -22,8 +22,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
-import static se.fnord.logtags.log4j2_logstash.taggedmessage.TagsUtil.collectTags;
-import static se.fnord.logtags.log4j2_logstash.taggedmessage.TagsUtil.tag;
+import static se.fnord.logtags.tags.TagsUtil.collectTags;
+import static se.fnord.logtags.tags.TagsUtil.tag;
 
 @ExtendWith(MockitoExtension.class)
 public class TestSignalLogger {

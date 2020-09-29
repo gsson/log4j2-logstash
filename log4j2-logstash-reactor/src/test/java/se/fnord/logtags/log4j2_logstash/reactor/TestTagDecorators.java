@@ -1,10 +1,10 @@
 package se.fnord.logtags.log4j2_logstash.reactor;
 
 import org.junit.jupiter.api.Test;
-import se.fnord.logtags.log4j2_logstash.taggedmessage.Tags;
+import se.fnord.logtags.tags.Tags;
 
-import static se.fnord.logtags.log4j2_logstash.taggedmessage.TagsUtil.assertForEach;
-import static se.fnord.logtags.log4j2_logstash.taggedmessage.TagsUtil.tag;
+import static se.fnord.logtags.tags.TagsUtil.assertForEach;
+import static se.fnord.logtags.tags.TagsUtil.tag;
 
 public class TestTagDecorators {
   @Test

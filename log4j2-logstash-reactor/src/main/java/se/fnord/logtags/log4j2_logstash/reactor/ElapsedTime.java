@@ -1,7 +1,7 @@
 package se.fnord.logtags.log4j2_logstash.reactor;
 
 import reactor.util.context.Context;
-import se.fnord.logtags.log4j2_logstash.taggedmessage.Tags;
+import se.fnord.logtags.tags.Tags;
 
 import java.util.concurrent.TimeUnit;
 import java.util.function.LongSupplier;

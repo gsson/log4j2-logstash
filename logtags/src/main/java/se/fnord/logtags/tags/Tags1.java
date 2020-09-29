@@ -1,15 +1,18 @@
-package se.fnord.logtags.log4j2_logstash.taggedmessage;
+package se.fnord.logtags.tags;
+
+import edu.umd.cs.findbugs.annotations.Nullable;
 
 import java.util.function.Consumer;
 
-class BooleanTags1 implements Tags {
+class Tags1 implements Tags {
     private static final long serialVersionUID = 1L;
     private final CharSequence key;
-    private final boolean value;
+    @Nullable
+    private final Object value;
 
     private final Tags next;
 
-    BooleanTags1(CharSequence key, boolean value, Tags next) {
+    Tags1(CharSequence key, @Nullable Object value, Tags next) {
         this.key = key;
         this.value = value;
         this.next = next;
@@ -23,6 +26,6 @@ class BooleanTags1 implements Tags {
 
     @Override
     public <T> void forEachTagInGroup(T state, TagConsumer<T> tagConsumer) {
-        tagConsumer.booleanTag(key, value, state);
+        tagConsumer.objectTag(key, value, state);
     }
 }

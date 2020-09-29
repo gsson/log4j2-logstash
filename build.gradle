@@ -131,6 +131,7 @@ project(':log4j2-logstash-bom') {
     dependencies {
         constraints {
             runtime project(":log4j2-logstash-layout")
+            runtime project(":logtags")
             runtime project(":log4j2-logstash-taggedmessage")
             runtime project(":log4j2-logstash-reactor")
         }
@@ -190,10 +191,8 @@ project(':log4j2-logstash-bom') {
     }
 }
 
-project(':log4j2-logstash-taggedmessage') {
+project(':logtags') {
     dependencies {
-        api "org.apache.logging.log4j:log4j-api"
-        testFixturesApi "org.apache.logging.log4j:log4j-api"
         testFixturesImplementation "org.junit.jupiter:junit-jupiter-api"
 
         testImplementation "org.junit.jupiter:junit-jupiter-api"
@@ -208,6 +207,66 @@ project(':log4j2-logstash-taggedmessage') {
                 withoutBuildIdentifier()
                 suppressPomMetadataWarningsFor('testFixturesApiElements')
                 suppressPomMetadataWarningsFor('testFixturesRuntimeElements')
+
+                pom {
+                    name = project.name
+                    description = 'Immutable tags structure'
+                    url = 'https://github.com/log4j2-logstash'
+                    packaging = 'jar'
+
+                    scm {
+                        url = 'scm:git:https://github.com/gsson/log4j2-logstash'
+                        connection = 'scm:git:git@github.com:/gsson/log4j2-logstash'
+                        developerConnection = 'scm:git:git@github.com:/gsson/log4j2-logstash'
+                    }
+
+                    licenses {
+                        license {
+                            name = 'Apache-2.0'
+                            url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                            distribution = 'repo'
+                        }
+                    }
+
+                    developers {
+                        developer {
+                            id = 'gsson'
+                            name = 'Henrik Gustafsson'
+                        }
+                    }
+                }
+                repositories {
+                    maven {
+                        url = repositoryUrl
+                        credentials(PasswordCredentials)
+                    }
+                }
+            }
+        }
+    }
+
+    signing {
+        required { isRelease && gradle.taskGraph.hasTask(":logtags:publish") }
+        sign publishing.publications.mavenJava
+    }
+}
+
+project(':log4j2-logstash-taggedmessage') {
+    dependencies {
+        api "org.apache.logging.log4j:log4j-api"
+        api project(":logtags")
+
+        testImplementation testFixtures(project(":logtags"))
+        testImplementation "org.junit.jupiter:junit-jupiter-api"
+        testImplementation "org.junit.jupiter:junit-jupiter-params"
+        testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+    }
+
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                from components.java
+                withoutBuildIdentifier()
 
                 pom {
                     name = project.name
@@ -257,9 +316,9 @@ project(':log4j2-logstash-reactor') {
         api "org.apache.logging.log4j:log4j-api"
         api "io.projectreactor:reactor-core"
         api project(':log4j2-logstash-taggedmessage')
+        api project(":logtags")
 
-        testImplementation testFixtures(project(":log4j2-logstash-taggedmessage"))
-
+        testImplementation testFixtures(project(":logtags"))
         testImplementation "org.junit.jupiter:junit-jupiter-api"
         testImplementation "org.junit.jupiter:junit-jupiter-params"
         testImplementation "org.mockito:mockito-junit-jupiter"
@@ -323,6 +382,7 @@ project(':log4j2-logstash-layout') {
     dependencies {
         api "org.apache.logging.log4j:log4j-api"
         api project(':log4j2-logstash-taggedmessage')
+        api project(":logtags")
 
         implementation "org.apache.logging.log4j:log4j-core"
         annotationProcessor "org.apache.logging.log4j:log4j-core"

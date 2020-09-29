@@ -6,7 +6,7 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.util.context.Context;
 import se.fnord.logtags.log4j2_logstash.reactor.ContextTags;
 import se.fnord.logtags.log4j2_logstash.reactor.ElapsedTime;
-import se.fnord.logtags.log4j2_logstash.taggedmessage.Tags;
+import se.fnord.logtags.tags.Tags;
 
 import java.net.InetSocketAddress;
 import java.util.Objects;

@@ -5,7 +5,7 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.message.Message;
 import reactor.core.publisher.Signal;
 import se.fnord.logtags.log4j2_logstash.taggedmessage.TaggedMessage;
-import se.fnord.logtags.log4j2_logstash.taggedmessage.Tags;
+import se.fnord.logtags.tags.Tags;
 
 import java.util.function.Consumer;
 import java.util.function.Function;

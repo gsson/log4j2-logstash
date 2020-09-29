@@ -4,7 +4,7 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.Logger;
 import reactor.core.publisher.Signal;
 import reactor.util.context.Context;
-import se.fnord.logtags.log4j2_logstash.taggedmessage.Tags;
+import se.fnord.logtags.tags.Tags;
 
 import java.util.function.BiFunction;
 import java.util.function.Consumer;

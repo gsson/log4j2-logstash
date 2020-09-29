@@ -1,17 +1,17 @@
-package se.fnord.logtags.log4j2_logstash.taggedmessage;
+package se.fnord.logtags.tags;
 
 import java.util.function.Consumer;
 
-class TagsN implements Tags {
+class LongTags1 implements Tags {
     private static final long serialVersionUID = 1L;
-    private final CharSequence[] keys;
-    private final Object[] values;
+    private final CharSequence key;
+    private final long value;
 
     private final Tags next;
 
-    TagsN(CharSequence[] keys, Object[] values, Tags next) {
-        this.keys = keys;
-        this.values = values;
+    LongTags1(CharSequence key, long value, Tags next) {
+        this.key = key;
+        this.value = value;
         this.next = next;
     }
 
@@ -23,8 +23,6 @@ class TagsN implements Tags {
 
     @Override
     public <T> void forEachTagInGroup(T state, TagConsumer<T> tagConsumer) {
-        for (int i = 0; i < keys.length; i++) {
-            tagConsumer.objectTag(keys[i], values[i], state);
-        }
+        tagConsumer.longTag(key, value, state);
     }
 }

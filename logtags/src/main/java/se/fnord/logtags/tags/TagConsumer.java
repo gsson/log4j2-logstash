@@ -1,4 +1,4 @@
-package se.fnord.logtags.log4j2_logstash.taggedmessage;
+package se.fnord.logtags.tags;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
 

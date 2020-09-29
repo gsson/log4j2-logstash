@@ -22,8 +22,8 @@ import org.apache.logging.log4j.message.Message;
 import org.apache.logging.log4j.util.StringBuilderFormattable;
 import org.apache.logging.log4j.util.StringBuilders;
 import org.apache.logging.log4j.util.Strings;
-import se.fnord.logtags.log4j2_logstash.taggedmessage.TagConsumer;
 import se.fnord.logtags.log4j2_logstash.taggedmessage.TaggedMessage;
+import se.fnord.logtags.tags.TagConsumer;
 
 import java.io.PrintWriter;
 import java.nio.charset.Charset;

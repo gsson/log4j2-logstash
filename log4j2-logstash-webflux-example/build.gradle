@@ -48,7 +48,7 @@ dependencies {
     implementation('org.springframework.boot:spring-boot-starter-log4j2')
 
     implementation(project(":log4j2-logstash-layout"))
-    implementation(project(":log4j2-tagged-message"))
+    implementation(project(":log4j2-logstash-taggedmessage"))
     implementation(project(":log4j2-logstash-reactor"))
 
 }

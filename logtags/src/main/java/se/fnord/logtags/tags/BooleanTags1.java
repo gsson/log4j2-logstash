@@ -1,15 +1,15 @@
-package se.fnord.logtags.log4j2_logstash.taggedmessage;
+package se.fnord.logtags.tags;
 
 import java.util.function.Consumer;
 
-class DoubleTags1 implements Tags {
+class BooleanTags1 implements Tags {
     private static final long serialVersionUID = 1L;
     private final CharSequence key;
-    private final double value;
+    private final boolean value;
 
     private final Tags next;
 
-    DoubleTags1(CharSequence key, double value, Tags next) {
+    BooleanTags1(CharSequence key, boolean value, Tags next) {
         this.key = key;
         this.value = value;
         this.next = next;
@@ -23,6 +23,6 @@ class DoubleTags1 implements Tags {
 
     @Override
     public <T> void forEachTagInGroup(T state, TagConsumer<T> tagConsumer) {
-        tagConsumer.doubleTag(key, value, state);
+        tagConsumer.booleanTag(key, value, state);
     }
 }

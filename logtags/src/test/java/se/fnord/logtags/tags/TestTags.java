@@ -1,18 +1,18 @@
-package se.fnord.logtags.log4j2_logstash.taggedmessage;
+package se.fnord.logtags.tags;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static java.util.Collections.singletonList;
-import static org.junit.jupiter.api.Assertions.fail;
 
 public class TestTags {
     @Test
     public void testForEach() {
         Tags.empty()
-                .forEach(null, TagsUtil.wrapConsumer((k, v, s) -> fail("Empty tags should not invoke function")));
+                .forEach(null, TagsUtil.wrapConsumer((k, v, s) -> Assertions.fail("Empty tags should not invoke function")));
 
         TagsUtil.assertForEach(Tags.of("a", "b")
                 .add("c", "d")

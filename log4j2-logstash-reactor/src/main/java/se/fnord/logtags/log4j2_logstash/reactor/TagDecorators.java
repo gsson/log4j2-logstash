@@ -1,6 +1,6 @@
 package se.fnord.logtags.log4j2_logstash.reactor;
 
-import se.fnord.logtags.log4j2_logstash.taggedmessage.Tags;
+import se.fnord.logtags.tags.Tags;
 
 import java.util.Objects;
 import java.util.function.BiFunction;

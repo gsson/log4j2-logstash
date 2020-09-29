@@ -1,6 +1,4 @@
-package se.fnord.logtags.log4j2_logstash.taggedmessage;
-
-import org.apache.logging.log4j.util.TriConsumer;
+package se.fnord.logtags.tags;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,7 +8,12 @@ import static java.util.Arrays.asList;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 
 public class TagsUtil {
-    public static <T> TagConsumer<T> wrapConsumer(TriConsumer<CharSequence, Object, T> wrapped) {
+    @FunctionalInterface
+    public interface TriConsumer<T> {
+        void accept(CharSequence tag, Object value, T context);
+    }
+
+    public static <T> TagConsumer<T> wrapConsumer(TriConsumer<T> wrapped) {
         return new TagConsumer<T>() {
             @Override
             public void textTag(CharSequence key, CharSequence value, T t) {

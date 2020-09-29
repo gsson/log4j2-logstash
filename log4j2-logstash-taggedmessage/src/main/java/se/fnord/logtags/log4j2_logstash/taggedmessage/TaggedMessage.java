@@ -5,16 +5,17 @@ import org.apache.logging.log4j.message.AsynchronouslyFormattable;
 import org.apache.logging.log4j.message.Message;
 import org.apache.logging.log4j.util.Chars;
 import org.apache.logging.log4j.util.StringBuilderFormattable;
+import se.fnord.logtags.tags.TagConsumer;
+import se.fnord.logtags.tags.Tags;
 
 @AsynchronouslyFormattable
 public class TaggedMessage implements Message, StringBuilderFormattable {
-    private static final TagConsumer<StringBuilder> SIMPLE_RENDERER = new TagConsumer<StringBuilder>() {
+    private static final TagConsumer<StringBuilder> SIMPLE_RENDERER = new TagConsumer<>() {
         private void prepareForAppend(StringBuilder sb, int approximateLength) {
             if (sb.length() > 0) {
                 sb.ensureCapacity(approximateLength + 1);
                 sb.append(' ');
-            }
-            else {
+            } else {
                 sb.ensureCapacity(approximateLength);
             }
         }
@@ -23,34 +24,34 @@ public class TaggedMessage implements Message, StringBuilderFormattable {
         public void textTag(CharSequence key, CharSequence value, StringBuilder sb) {
             prepareForAppend(sb, key.length() + value.length() + 3);
             sb.append(key)
-                    .append(Chars.EQ)
-                    .append(Chars.DQUOTE)
-                    .append(value)
-                    .append(Chars.DQUOTE);
+                .append(Chars.EQ)
+                .append(Chars.DQUOTE)
+                .append(value)
+                .append(Chars.DQUOTE);
         }
 
         @Override
         public void longTag(CharSequence key, long value, StringBuilder sb) {
             prepareForAppend(sb, key.length() + 5);
             sb.append(key)
-                    .append(Chars.EQ)
-                    .append(value);
+                .append(Chars.EQ)
+                .append(value);
         }
 
         @Override
         public void booleanTag(CharSequence key, boolean value, StringBuilder sb) {
             prepareForAppend(sb, key.length() + 5);
             sb.append(key)
-                    .append(Chars.EQ)
-                    .append(value);
+                .append(Chars.EQ)
+                .append(value);
         }
 
         @Override
         public void doubleTag(CharSequence key, double value, StringBuilder sb) {
             prepareForAppend(sb, key.length() + 5);
             sb.append(key)
-                    .append(Chars.EQ)
-                    .append(value);
+                .append(Chars.EQ)
+                .append(value);
         }
 
         @Override

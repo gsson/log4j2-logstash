@@ -13,6 +13,7 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Signal;
+import se.fnord.logtags.log4j2_logstash.reactor.ContextTags;
 import se.fnord.logtags.log4j2_logstash.reactor.SignalLoggerBuilder;
 import se.fnord.logtags.log4j2_logstash.reactor.SimpleLogger;
 import se.fnord.logtags.tags.Tags;
@@ -51,32 +52,45 @@ public class Main {
         .doOnEach(RESPONSE_LOGGER);
   }
 
-  public Mono<ServerResponse> handle1(ServerRequest request) {
+  public Mono<ServerResponse> logString(ServerRequest request) {
     return ServerResponse.ok()
         .bodyValue("hello world!")
-        .doOnEach(log.info("This happened"));
+        .doOnEach(log.info("This happened"))
+        .subscriberContext(ContextTags.addTag("another_tag", "value"));
   }
 
-  public Mono<ServerResponse> handle2(ServerRequest request) {
+  public Mono<ServerResponse> logStringFunction(ServerRequest request) {
     return ServerResponse.ok()
         .bodyValue("hello world!")
-        .doOnEach(log.info(s -> "Have a look: " + s));
+        .doOnEach(log.info(s -> "Have a look: " + s.rawStatusCode()))
+        .subscriberContext(ContextTags.addTag("another_tag", "value"));
   }
 
-  public Mono<ServerResponse> handle3(ServerRequest request) {
+  public Mono<ServerResponse> logTags(ServerRequest request) {
+    return ServerResponse.ok()
+        .bodyValue("hello world!")
+        .doOnEach(log.infoTags(Tags.of(
+            "meaning", 42,
+            "message", "This happened")))
+        .subscriberContext(ContextTags.addTag("another_tag", "value"));
+  }
+
+  public Mono<ServerResponse> logTagsFunction(ServerRequest request) {
     return ServerResponse.ok()
         .bodyValue("hello world!")
         .doOnEach(log.infoTags(s -> Tags.of(
             "test_status", s.rawStatusCode(),
-            "message", s.statusCode().getReasonPhrase())));
+            "message", "Have a look: " + s.rawStatusCode())))
+        .subscriberContext(ContextTags.addTag("another_tag", "value"));
   }
 
   @Bean
   public RouterFunction<ServerResponse> routes() {
     return RouterFunctions
-        .route(RequestPredicates.GET("/1"), this::handle1)
-        .andRoute(RequestPredicates.GET("/2"), this::handle2)
-        .andRoute(RequestPredicates.GET("/3"), this::handle3)
+        .route(RequestPredicates.GET("/logString"), this::logString)
+        .andRoute(RequestPredicates.GET("/logStringFunction"), this::logStringFunction)
+        .andRoute(RequestPredicates.GET("/logTags"), this::logTags)
+        .andRoute(RequestPredicates.GET("/logTagsFunction"), this::logTagsFunction)
         .filter(Main::logFilter)
         .filter(Main::contextFilter);
   }

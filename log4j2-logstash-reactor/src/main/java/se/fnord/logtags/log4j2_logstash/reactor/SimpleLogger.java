@@ -5,6 +5,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.util.StackLocatorUtil;
 import reactor.core.publisher.Signal;
+import reactor.core.publisher.SignalType;
 import reactor.util.context.Context;
 import se.fnord.logtags.log4j2_logstash.taggedmessage.TaggedMessage;
 import se.fnord.logtags.tags.Tags;
@@ -48,24 +49,6 @@ public class SimpleLogger {
     return tagsFromContext.apply(signal.getContext()).add(tags);
   }
 
-  private <T> TaggedMessage createMessage(Signal<? extends T> signal, Function<Signal<? extends T>, Tags> tags) {
-    return new TaggedMessage(withContextTags(signal, tags.apply(signal)),
-        signal.hasError() ? signal.getThrowable() : null);
-  }
-
-  private TaggedMessage createMessage(Signal<?> signal, Tags tags) {
-    return new TaggedMessage(withContextTags(signal, tags), signal.hasError() ? signal.getThrowable() : null);
-  }
-
-  private <T> Supplier<TaggedMessage> messageSupplier(Signal<? extends T> signal,
-      Function<Signal<? extends T>, Tags> tags) {
-    return () -> createMessage(signal, tags);
-  }
-
-  private static Level levelForSignal(Signal<?> signal, Level valueLevel) {
-    return signal.hasError() ? Level.ERROR : valueLevel;
-  }
-
   private static Tags messageTag(String value) {
     return Tags.of("message", value);
   }
@@ -74,39 +57,25 @@ public class SimpleLogger {
     return Tags.of("message", Objects.toString(t));
   }
 
-  public static <T> Function<Signal<? extends T>, Tags> signalTags(Function<T, Tags> valueTags,
-      Function<Throwable, Tags> errorTags) {
-    return signal -> {
-      if (signal.isOnNext()) {
-        return valueTags.apply(signal.get());
-      }
-      if (signal.isOnError()) {
-        return errorTags.apply(signal.getThrowable());
-      }
-      return Tags.empty();
-    };
+  private TaggedMessage createTaggedMessage(Signal<?> signal, Tags tags) {
+    return new TaggedMessage(withContextTags(signal, tags), signal.getThrowable());
   }
 
-  public static Tags signalTags(Signal<?> signal, Tags valueTags) {
-    if (signal.isOnNext()) {
-      return valueTags;
-    }
-    if (signal.isOnError()) {
-      return errorMessageTag(signal.getThrowable());
-    }
-    return Tags.empty();
+  private static Level levelForSignal(Signal<?> signal, Level valueLevel) {
+    return signal.getType() == SignalType.ON_ERROR ? Level.ERROR : valueLevel;
   }
 
-  private <T> void doLog(Signal<T> signal, Level level, Function<Signal<T>, TaggedMessage> messageFromSignal) {
+  private <T> void doLog(Signal<T> signal, Level level, Function<T, Tags> valueTags) {
     var actualLevel = levelForSignal(signal, level);
     if (logger.isEnabled(actualLevel)) {
       switch (signal.getType()) {
       case ON_NEXT:
-        logger.log(actualLevel, messageFromSignal.apply(signal));
+        logger.log(actualLevel,
+            createTaggedMessage(signal, valueTags.apply(signal.get())));
         break;
       case ON_ERROR:
         logger.log(actualLevel,
-            createMessage(signal, errorMessageTag(signal.getThrowable())));
+            createTaggedMessage(signal, errorMessageTag(signal.getThrowable())));
         break;
       default:
         // Ignore
@@ -114,52 +83,122 @@ public class SimpleLogger {
     }
   }
 
-  public <T> Consumer<Signal<? extends T>> logTags(Level level, Tags valueTags) {
-    return signal -> doLog(signal, level, s -> createMessage(signal, signalTags(s, valueTags)));
+  private <T> void doLog(Signal<T> signal, Level level, Tags valueTags) {
+    var actualLevel = levelForSignal(signal, level);
+    if (logger.isEnabled(actualLevel)) {
+      switch (signal.getType()) {
+      case ON_NEXT:
+        logger.log(actualLevel,
+            createTaggedMessage(signal, valueTags));
+        break;
+      case ON_ERROR:
+        logger.log(actualLevel,
+            createTaggedMessage(signal, errorMessageTag(signal.getThrowable())));
+        break;
+      default:
+        // Ignore
+      }
+    }
+  }
+
+  public Consumer<Signal<?>> logTags(Level level, Tags valueTags) {
+    return signal -> doLog(signal, level, valueTags);
   }
 
   public <T> Consumer<Signal<? extends T>> logTags(Level level, Function<T, Tags> valueTags) {
-    return signal -> doLog(signal, level, s -> createMessage(signal, signalTags(s, valueTags.apply(s.get()))));
+    return signal -> doLog(signal, level, valueTags::apply);
+  }
+
+  public Consumer<Signal<?>> log(Level level, String message) {
+    return signal -> doLog(signal, level, v -> messageTag(message));
   }
 
   public <T> Consumer<Signal<? extends T>> log(Level level, Function<T, String> messageSupplier) {
-    return signal -> doLog(signal, level, s -> createMessage(s, signalTags(s, messageTag(messageSupplier.apply(s.get())))));
+    return signal -> doLog(signal, level, v -> messageTag(messageSupplier.apply(v)));
   }
 
-  public <T> Consumer<Signal<? extends T>> log(Level level, String message) {
-    return signal -> doLog(signal, level, s -> createMessage(s, signalTags(s, messageTag(message))));
+
+  public Consumer<Signal<?>> errorTags(Tags valueTags) {
+    return logTags(Level.ERROR, valueTags);
   }
 
+  public <T> Consumer<Signal<? extends T>> errorTags(Function<T, Tags> valueTags) {
+    return logTags(Level.ERROR, valueTags);
+  }
+
+  public Consumer<Signal<?>> error(String message) {
+    return log(Level.ERROR, message);
+  }
+
+  public <T> Consumer<Signal<? extends T>> error(Function<T, String> messageSupplier) {
+    return log(Level.ERROR, messageSupplier);
+  }
+
+
+  public Consumer<Signal<?>> warnTags(Tags valueTags) {
+    return logTags(Level.WARN, valueTags);
+  }
+
+  public <T> Consumer<Signal<? extends T>> warnTags(Function<T, Tags> valueTags) {
+    return logTags(Level.WARN, valueTags);
+  }
+
+  public Consumer<Signal<?>> warn(String message) {
+    return log(Level.WARN, message);
+  }
+
+  public <T> Consumer<Signal<? extends T>> warn(Function<T, String> messageSupplier) {
+    return log(Level.WARN, messageSupplier);
+  }
+
+
+  public Consumer<Signal<?>> infoTags(Tags valueTags) {
+    return logTags(Level.INFO, valueTags);
+  }
 
   public <T> Consumer<Signal<? extends T>> infoTags(Function<T, Tags> valueTags) {
     return logTags(Level.INFO, valueTags);
   }
 
-  public <T> Consumer<Signal<? extends T>> infoTags(Tags valueTags) {
-    return logTags(Level.INFO, valueTags);
+  public Consumer<Signal<?>> info(String message) {
+    return log(Level.INFO, message);
   }
 
   public <T> Consumer<Signal<? extends T>> info(Function<T, String> messageSupplier) {
     return log(Level.INFO, messageSupplier);
   }
 
-  public <T> Consumer<Signal<? extends T>> info(String message) {
-    return log(Level.INFO, message);
+
+  public Consumer<Signal<?>> debugTags(Tags tags) {
+    return logTags(Level.DEBUG, tags);
   }
 
   public <T> Consumer<Signal<? extends T>> debugTags(Function<T, Tags> valueTags) {
     return logTags(Level.DEBUG, valueTags);
   }
 
-  public <T> Consumer<Signal<? extends T>> debugTags(Tags tags) {
-    return logTags(Level.DEBUG, tags);
+  public Consumer<Signal<?>> debug(String message) {
+    return log(Level.DEBUG, message);
   }
 
   public <T> Consumer<Signal<? extends T>> debug(Function<T, String> messageSupplier) {
     return log(Level.DEBUG, messageSupplier);
   }
 
-  public <T> Consumer<Signal<? extends T>> debug(String message) {
-    return log(Level.DEBUG, message);
+
+  public Consumer<Signal<?>> traceTags(Tags tags) {
+    return logTags(Level.TRACE, tags);
+  }
+
+  public <T> Consumer<Signal<? extends T>> traceTags(Function<T, Tags> valueTags) {
+    return logTags(Level.TRACE, valueTags);
+  }
+
+  public Consumer<Signal<?>> trace(String message) {
+    return log(Level.TRACE, message);
+  }
+
+  public <T> Consumer<Signal<? extends T>> trace(Function<T, String> messageSupplier) {
+    return log(Level.TRACE, messageSupplier);
   }
 }

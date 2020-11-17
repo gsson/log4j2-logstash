@@ -15,6 +15,7 @@ import se.fnord.logtags.tags.TagsUtil;
 
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -66,6 +67,20 @@ public class TestSimpleLogger {
     verifyNoMoreInteractions(logger);
   }
 
+  private void verifyLoggerNotLoggingOnNext(Consumer<Signal<?>> signalLogger) {
+    reset(logger);
+    when(logger.isEnabled(any(Level.class))).thenReturn(true);
+
+    signalLogger
+        .accept(Signal.next(
+            "world",
+            TEST_CONTEXT));
+    signalLogger
+        .accept(Signal.complete(TEST_CONTEXT));
+
+    verifyNoMoreInteractions(logger);
+  }
+
   private void verifyLoggerOnError(Consumer<Signal<?>> signalLogger, Level expectedLevel, ArgumentMatcher<TaggedMessage> expectedMessage) {
     reset(logger);
     when(logger.isEnabled(any(Level.class))).thenReturn(true);
@@ -74,6 +89,41 @@ public class TestSimpleLogger {
         .accept(Signal.error(
             new IllegalStateException("error"),
             TEST_CONTEXT));
+    signalLogger
+        .accept(Signal.complete(TEST_CONTEXT));
+
+    verify(logger).isEnabled(expectedLevel);
+    verify(logger).log(eq(expectedLevel), argThat(expectedMessage));
+    verifyNoMoreInteractions(logger);
+  }
+
+  private void verifyLoggerNotLoggingOnError(Consumer<Signal<?>> signalLogger) {
+    reset(logger);
+    when(logger.isEnabled(any(Level.class))).thenReturn(true);
+
+    signalLogger
+        .accept(Signal.error(
+            new IllegalStateException("error"),
+            TEST_CONTEXT));
+    signalLogger
+        .accept(Signal.complete(TEST_CONTEXT));
+
+    verifyNoMoreInteractions(logger);
+  }
+
+  private void verifyLoggerNotLoggingOnEmpty(Consumer<Signal<?>> signalLogger) {
+    reset(logger);
+    when(logger.isEnabled(any(Level.class))).thenReturn(true);
+
+    signalLogger
+        .accept(Signal.complete(TEST_CONTEXT));
+    verifyNoMoreInteractions(logger);
+  }
+
+  private void verifyLoggerOnEmpty(Consumer<Signal<?>> signalLogger, Level expectedLevel, ArgumentMatcher<TaggedMessage> expectedMessage) {
+    reset(logger);
+    when(logger.isEnabled(any(Level.class))).thenReturn(true);
+
     signalLogger
         .accept(Signal.complete(TEST_CONTEXT));
 
@@ -93,6 +143,18 @@ public class TestSimpleLogger {
             tag("test", "tag"),
             tag("message", "java.lang.IllegalStateException: error")));
 
+    verifyLoggerNotLoggingOnEmpty(signalLogger);
+  }
+
+  private void verifyHelloWorldMessageOnEmptyLogger(Supplier<Consumer<Signal<?>>> signalLogger, Level expectedLevel) {
+    verifyLoggerNotLoggingOnNext(signalLogger.get());
+
+    verifyLoggerNotLoggingOnError(signalLogger.get());
+
+    verifyLoggerOnEmpty(signalLogger.get(),
+        expectedLevel, valueMessage(
+            tag("test", "tag"),
+            tag("message", "hello world")));
   }
 
   @Test
@@ -253,9 +315,18 @@ public class TestSimpleLogger {
 
   @Test
   public void testSimpleLoggerTraceTagsFunction() {
-    var l = SimpleLogger.forLogger(logger)
-        .traceTags(v -> Tags.of("message", "hello " + v));
+    var l = SimpleLogger.forLogger(logger);
 
-    verifyHelloWorldMessageLogger(l, Level.TRACE);
+    verifyHelloWorldMessageLogger(l.traceTags(v -> Tags.of("message", "hello " + v)), Level.TRACE);
   }
+
+  @Test
+  public void testSimpleLoggerOnEmptyTagsFunction() {
+    var simpleLogger = SimpleLogger.forLogger(logger);
+
+    verifyHelloWorldMessageOnEmptyLogger(
+        () -> simpleLogger.logOnEmptyTags(Level.TRACE, () -> Tags.of("message", "hello world")),
+        Level.TRACE);
+  }
+
 }

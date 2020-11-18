@@ -1,5 +1,6 @@
 package se.fnord.logtags.log4j2_logstash.reactor;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Test;
@@ -21,6 +22,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -30,7 +32,9 @@ import static se.fnord.logtags.tags.TagsUtil.tag;
 @ExtendWith(MockitoExtension.class)
 public class TestSimpleLogger {
   private static final Context TEST_CONTEXT = Context.of(Tags.class, Tags.of("test", "tag"));
-  private @Mock Logger logger;
+  @SuppressFBWarnings(value = "NP_NONNULL_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR", justification = "This value is injected by Mockito")
+  private @Mock
+  Logger logger;
 
   static ArgumentMatcher<TaggedMessage> errorMessage(Class<? extends Throwable> t, TagsUtil.Tag... tags) {
     return message -> {
@@ -50,96 +54,102 @@ public class TestSimpleLogger {
     };
   }
 
-
-  private void verifyLoggerOnNext(Consumer<Signal<?>> signalLogger, Level expectedLevel, ArgumentMatcher<TaggedMessage> expectedMessage) {
+  private void verifyLoggerOnNext(Supplier<Consumer<Signal<?>>> signalLogger, Level expectedLevel,
+      ArgumentMatcher<TaggedMessage> expectedMessage) {
     reset(logger);
     when(logger.isEnabled(any(Level.class))).thenReturn(true);
 
-    signalLogger
-        .accept(Signal.next(
-            "world",
-            TEST_CONTEXT));
-    signalLogger
-        .accept(Signal.complete(TEST_CONTEXT));
+    var l = signalLogger.get();
+    l.accept(Signal.next(
+        "world",
+        TEST_CONTEXT));
+    l.accept(Signal.complete(TEST_CONTEXT));
+
+    if (expectedLevel == Level.ERROR) {
+      verify(logger, times(2)).isEnabled(Level.ERROR);
+    } else {
+      verify(logger).isEnabled(expectedLevel);
+      verify(logger).isEnabled(Level.ERROR);
+    }
+
+    verify(logger).log(eq(expectedLevel), argThat(expectedMessage));
+    verifyNoMoreInteractions(logger);
+  }
+
+  private void verifyLoggerNotLoggingOnNext(Supplier<Consumer<Signal<?>>> signalLogger) {
+    reset(logger);
+    when(logger.isEnabled(any(Level.class))).thenReturn(true);
+
+    var l = signalLogger.get();
+    l.accept(Signal.next(
+        "world",
+        TEST_CONTEXT));
+    l.accept(Signal.complete(TEST_CONTEXT));
+
+    verifyNoMoreInteractions(logger);
+  }
+
+  private void verifyLoggerOnError(Supplier<Consumer<Signal<?>>> signalLogger,
+      ArgumentMatcher<TaggedMessage> expectedMessage) {
+    reset(logger);
+    when(logger.isEnabled(any(Level.class))).thenReturn(true);
+
+    var l = signalLogger.get();
+    l.accept(Signal.error(
+        new IllegalStateException("error"),
+        TEST_CONTEXT));
+    l.accept(Signal.complete(TEST_CONTEXT));
+
+    verify(logger, times(2)).isEnabled(any(Level.class));
+
+    verify(logger).log(eq(Level.ERROR), argThat(expectedMessage));
+    verifyNoMoreInteractions(logger);
+  }
+
+  private void verifyLoggerNotLoggingOnError(Supplier<Consumer<Signal<?>>> signalLogger) {
+    reset(logger);
+    when(logger.isEnabled(any(Level.class))).thenReturn(true);
+
+    var l = signalLogger.get();
+    l.accept(Signal.error(
+        new IllegalStateException("error"),
+        TEST_CONTEXT));
+    l.accept(Signal.complete(TEST_CONTEXT));
+
+    verifyNoMoreInteractions(logger);
+  }
+
+  private void verifyLoggerNotLoggingOnEmpty(Supplier<Consumer<Signal<?>>> signalLogger) {
+    reset(logger);
+    when(logger.isEnabled(any(Level.class))).thenReturn(true);
+
+    var l = signalLogger.get();
+    l.accept(Signal.complete(TEST_CONTEXT));
+
+    verifyNoMoreInteractions(logger);
+  }
+
+  private void verifyLoggerOnEmpty(Supplier<Consumer<Signal<?>>> signalLogger, Level expectedLevel,
+      ArgumentMatcher<TaggedMessage> expectedMessage) {
+    reset(logger);
+    when(logger.isEnabled(any(Level.class))).thenReturn(true);
+
+    var l = signalLogger.get();
+    l.accept(Signal.complete(TEST_CONTEXT));
 
     verify(logger).isEnabled(expectedLevel);
     verify(logger).log(eq(expectedLevel), argThat(expectedMessage));
     verifyNoMoreInteractions(logger);
   }
 
-  private void verifyLoggerNotLoggingOnNext(Consumer<Signal<?>> signalLogger) {
-    reset(logger);
-    when(logger.isEnabled(any(Level.class))).thenReturn(true);
-
-    signalLogger
-        .accept(Signal.next(
-            "world",
-            TEST_CONTEXT));
-    signalLogger
-        .accept(Signal.complete(TEST_CONTEXT));
-
-    verifyNoMoreInteractions(logger);
-  }
-
-  private void verifyLoggerOnError(Consumer<Signal<?>> signalLogger, Level expectedLevel, ArgumentMatcher<TaggedMessage> expectedMessage) {
-    reset(logger);
-    when(logger.isEnabled(any(Level.class))).thenReturn(true);
-
-    signalLogger
-        .accept(Signal.error(
-            new IllegalStateException("error"),
-            TEST_CONTEXT));
-    signalLogger
-        .accept(Signal.complete(TEST_CONTEXT));
-
-    verify(logger).isEnabled(expectedLevel);
-    verify(logger).log(eq(expectedLevel), argThat(expectedMessage));
-    verifyNoMoreInteractions(logger);
-  }
-
-  private void verifyLoggerNotLoggingOnError(Consumer<Signal<?>> signalLogger) {
-    reset(logger);
-    when(logger.isEnabled(any(Level.class))).thenReturn(true);
-
-    signalLogger
-        .accept(Signal.error(
-            new IllegalStateException("error"),
-            TEST_CONTEXT));
-    signalLogger
-        .accept(Signal.complete(TEST_CONTEXT));
-
-    verifyNoMoreInteractions(logger);
-  }
-
-  private void verifyLoggerNotLoggingOnEmpty(Consumer<Signal<?>> signalLogger) {
-    reset(logger);
-    when(logger.isEnabled(any(Level.class))).thenReturn(true);
-
-    signalLogger
-        .accept(Signal.complete(TEST_CONTEXT));
-    verifyNoMoreInteractions(logger);
-  }
-
-  private void verifyLoggerOnEmpty(Consumer<Signal<?>> signalLogger, Level expectedLevel, ArgumentMatcher<TaggedMessage> expectedMessage) {
-    reset(logger);
-    when(logger.isEnabled(any(Level.class))).thenReturn(true);
-
-    signalLogger
-        .accept(Signal.complete(TEST_CONTEXT));
-
-    verify(logger).isEnabled(expectedLevel);
-    verify(logger).log(eq(expectedLevel), argThat(expectedMessage));
-    verifyNoMoreInteractions(logger);
-  }
-
-  private void verifyHelloWorldMessageLogger(Consumer<Signal<?>> signalLogger, Level expectedLevel) {
+  private void verifyHelloWorldMessageLogger(Supplier<Consumer<Signal<?>>> signalLogger, Level expectedLevel) {
     verifyLoggerOnNext(signalLogger,
         expectedLevel, valueMessage(
             tag("test", "tag"),
             tag("message", "hello world")));
 
     verifyLoggerOnError(signalLogger,
-        Level.ERROR, errorMessage(IllegalStateException.class,
+        errorMessage(IllegalStateException.class,
             tag("test", "tag"),
             tag("message", "java.lang.IllegalStateException: error")));
 
@@ -147,11 +157,11 @@ public class TestSimpleLogger {
   }
 
   private void verifyHelloWorldMessageOnEmptyLogger(Supplier<Consumer<Signal<?>>> signalLogger, Level expectedLevel) {
-    verifyLoggerNotLoggingOnNext(signalLogger.get());
+    verifyLoggerNotLoggingOnNext(signalLogger);
 
-    verifyLoggerNotLoggingOnError(signalLogger.get());
+    verifyLoggerNotLoggingOnError(signalLogger);
 
-    verifyLoggerOnEmpty(signalLogger.get(),
+    verifyLoggerOnEmpty(signalLogger,
         expectedLevel, valueMessage(
             tag("test", "tag"),
             tag("message", "hello world")));
@@ -159,165 +169,142 @@ public class TestSimpleLogger {
 
   @Test
   public void testSimpleLoggerErrorString() {
-    var l = SimpleLogger.forLogger(logger)
-        .error("hello world");
+    var l = SimpleLogger.forLogger(logger);
 
-    verifyHelloWorldMessageLogger(l, Level.ERROR);
+    verifyHelloWorldMessageLogger(() -> l.error("hello world"), Level.ERROR);
   }
 
   @Test
   public void testSimpleLoggerErrorStringFunction() {
-    var l = SimpleLogger.forLogger(logger)
-        .error(v -> "hello " + v);
+    var l = SimpleLogger.forLogger(logger);
 
-    verifyHelloWorldMessageLogger(l, Level.ERROR);
+    verifyHelloWorldMessageLogger(() -> l.error(v -> "hello " + v), Level.ERROR);
   }
 
   @Test
   public void testSimpleLoggerErrorTags() {
-    var l = SimpleLogger.forLogger(logger)
-        .errorTags(Tags.of("message", "hello world"));
+    var l = SimpleLogger.forLogger(logger);
 
-    verifyHelloWorldMessageLogger(l, Level.ERROR);
+    verifyHelloWorldMessageLogger(() -> l.errorTags(Tags.of("message", "hello world")), Level.ERROR);
   }
 
   @Test
   public void testSimpleLoggerErrorTagsFunction() {
-    var l = SimpleLogger.forLogger(logger)
-        .errorTags(v -> Tags.of("message", "hello " + v));
+    var l = SimpleLogger.forLogger(logger);
 
-    verifyHelloWorldMessageLogger(l, Level.ERROR);
+    verifyHelloWorldMessageLogger(() -> l.errorTags(v -> Tags.of("message", "hello " + v)), Level.ERROR);
   }
-
 
   @Test
   public void testSimpleLoggerWarnString() {
-    var l = SimpleLogger.forLogger(logger)
-        .warn("hello world");
+    var l = SimpleLogger.forLogger(logger);
 
-    verifyHelloWorldMessageLogger(l, Level.WARN);
+    verifyHelloWorldMessageLogger(() -> l.warn("hello world"), Level.WARN);
   }
 
   @Test
   public void testSimpleLoggerWarnStringFunction() {
-    var l = SimpleLogger.forLogger(logger)
-        .warn(v -> "hello " + v);
+    var l = SimpleLogger.forLogger(logger);
 
-    verifyHelloWorldMessageLogger(l, Level.WARN);
+    verifyHelloWorldMessageLogger(() -> l.warn(v -> "hello " + v), Level.WARN);
   }
 
   @Test
   public void testSimpleLoggerWarnTags() {
-    var l = SimpleLogger.forLogger(logger)
-        .warnTags(Tags.of("message", "hello world"));
+    var l = SimpleLogger.forLogger(logger);
 
-    verifyHelloWorldMessageLogger(l, Level.WARN);
+    verifyHelloWorldMessageLogger(() -> l.warnTags(Tags.of("message", "hello world")), Level.WARN);
   }
 
   @Test
   public void testSimpleLoggerWarnTagsFunction() {
-    var l = SimpleLogger.forLogger(logger)
-        .warnTags(v -> Tags.of("message", "hello " + v));
+    var l = SimpleLogger.forLogger(logger);
 
-    verifyHelloWorldMessageLogger(l, Level.WARN);
+    verifyHelloWorldMessageLogger(() -> l.warnTags(v -> Tags.of("message", "hello " + v)), Level.WARN);
   }
 
-  
   @Test
   public void testSimpleLoggerInfoString() {
-    var l = SimpleLogger.forLogger(logger)
-        .info("hello world");
+    var l = SimpleLogger.forLogger(logger);
 
-    verifyHelloWorldMessageLogger(l, Level.INFO);
+    verifyHelloWorldMessageLogger(() -> l.info("hello world"), Level.INFO);
   }
 
   @Test
   public void testSimpleLoggerInfoStringFunction() {
-    var l = SimpleLogger.forLogger(logger)
-        .info(v -> "hello " + v);
+    var l = SimpleLogger.forLogger(logger);
 
-    verifyHelloWorldMessageLogger(l, Level.INFO);
+    verifyHelloWorldMessageLogger(() -> l.info(v -> "hello " + v), Level.INFO);
   }
 
   @Test
   public void testSimpleLoggerInfoTags() {
-    var l = SimpleLogger.forLogger(logger)
-        .infoTags(Tags.of("message", "hello world"));
+    var l = SimpleLogger.forLogger(logger);
 
-    verifyHelloWorldMessageLogger(l, Level.INFO);
+    verifyHelloWorldMessageLogger(() -> l.infoTags(Tags.of("message", "hello world")), Level.INFO);
   }
 
   @Test
   public void testSimpleLoggerInfoTagsFunction() {
-    var l = SimpleLogger.forLogger(logger)
-        .infoTags(v -> Tags.of("message", "hello " + v));
+    var l = SimpleLogger.forLogger(logger);
 
-    verifyHelloWorldMessageLogger(l, Level.INFO);
+    verifyHelloWorldMessageLogger(() -> l.infoTags(v -> Tags.of("message", "hello " + v)), Level.INFO);
   }
-
 
   @Test
   public void testSimpleLoggerDebugString() {
-    var l = SimpleLogger.forLogger(logger)
-        .debug("hello world");
+    var l = SimpleLogger.forLogger(logger);
 
-    verifyHelloWorldMessageLogger(l, Level.DEBUG);
+    verifyHelloWorldMessageLogger(() -> l.debug("hello world"), Level.DEBUG);
   }
 
   @Test
   public void testSimpleLoggerDebugStringFunction() {
-    var l = SimpleLogger.forLogger(logger)
-        .debug(v -> "hello " + v);
+    var l = SimpleLogger.forLogger(logger);
 
-    verifyHelloWorldMessageLogger(l, Level.DEBUG);
+    verifyHelloWorldMessageLogger(() -> l.debug(v -> "hello " + v), Level.DEBUG);
   }
 
   @Test
   public void testSimpleLoggerDebugTags() {
-    var l = SimpleLogger.forLogger(logger)
-        .debugTags(Tags.of("message", "hello world"));
+    var l = SimpleLogger.forLogger(logger);
 
-    verifyHelloWorldMessageLogger(l, Level.DEBUG);
+    verifyHelloWorldMessageLogger(() -> l.debugTags(Tags.of("message", "hello world")), Level.DEBUG);
   }
 
   @Test
   public void testSimpleLoggerDebugTagsFunction() {
-    var l = SimpleLogger.forLogger(logger)
-        .debugTags(v -> Tags.of("message", "hello " + v));
+    var l = SimpleLogger.forLogger(logger);
 
-    verifyHelloWorldMessageLogger(l, Level.DEBUG);
+    verifyHelloWorldMessageLogger(() -> l.debugTags(v -> Tags.of("message", "hello " + v)), Level.DEBUG);
   }
-  
 
   @Test
   public void testSimpleLoggerTraceString() {
-    var l = SimpleLogger.forLogger(logger)
-        .trace("hello world");
+    var l = SimpleLogger.forLogger(logger);
 
-    verifyHelloWorldMessageLogger(l, Level.TRACE);
+    verifyHelloWorldMessageLogger(() -> l.trace("hello world"), Level.TRACE);
   }
 
   @Test
   public void testSimpleLoggerTraceStringFunction() {
-    var l = SimpleLogger.forLogger(logger)
-        .trace(v -> "hello " + v);
+    var l = SimpleLogger.forLogger(logger);
 
-    verifyHelloWorldMessageLogger(l, Level.TRACE);
+    verifyHelloWorldMessageLogger(() -> l.trace(v -> "hello " + v), Level.TRACE);
   }
 
   @Test
   public void testSimpleLoggerTraceTags() {
-    var l = SimpleLogger.forLogger(logger)
-        .traceTags(Tags.of("message", "hello world"));
+    var l = SimpleLogger.forLogger(logger);
 
-    verifyHelloWorldMessageLogger(l, Level.TRACE);
+    verifyHelloWorldMessageLogger(() -> l.traceTags(Tags.of("message", "hello world")), Level.TRACE);
   }
 
   @Test
   public void testSimpleLoggerTraceTagsFunction() {
     var l = SimpleLogger.forLogger(logger);
 
-    verifyHelloWorldMessageLogger(l.traceTags(v -> Tags.of("message", "hello " + v)), Level.TRACE);
+    verifyHelloWorldMessageLogger(() -> l.traceTags(v -> Tags.of("message", "hello " + v)), Level.TRACE);
   }
 
   @Test

@@ -17,8 +17,11 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class SimpleLogger {
+  private static final Consumer<?> NO_LOG = s -> {};
+
   private final Logger logger;
   private final Function<Context, Tags> tagsFromContext;
+  private final LogOnError<?> logOnError = new LogOnError<>();
 
   SimpleLogger(Logger logger, Function<Context, Tags> tagsFromContext) {
     this.logger = logger;
@@ -61,16 +64,24 @@ public class SimpleLogger {
     return new TaggedMessage(withContextTags(signal, tags), signal.getThrowable());
   }
 
-  private static Level levelForSignal(Signal<?> signal, Level valueLevel) {
-    return signal.getType() == SignalType.ON_ERROR ? Level.ERROR : valueLevel;
+
+  @SuppressWarnings("unchecked")
+  private <T> Consumer<Signal<? extends T>> onErrorLogger() {
+    return (Consumer<Signal<? extends T>>) logOnError;
   }
 
-  private class LogOnEmpty<T> implements Consumer<Signal<? extends T>> {
+  @SuppressWarnings("unchecked")
+  private <T> Consumer<Signal<? extends T>> noOpLogger() {
+    return (Consumer<Signal<? extends T>>) NO_LOG;
+  }
+
+
+  private class LogOnEmptyTagsSupplier<T> implements Consumer<Signal<? extends T>> {
     private final Level level;
     private final Supplier<Tags> onEmptyTags;
     private boolean valueSeen = false;
 
-    private LogOnEmpty(Level level, Supplier<Tags> onEmptyTags) {
+    private LogOnEmptyTagsSupplier(Level level, Supplier<Tags> onEmptyTags) {
       this.level = level;
       this.onEmptyTags = onEmptyTags;
     }
@@ -83,25 +94,10 @@ public class SimpleLogger {
         valueSeen = true;
         break;
       case ON_COMPLETE:
-        if (!valueSeen && logger.isEnabled(level)) {
+        if (!valueSeen) {
           logger.log(level,
               createTaggedMessage(signal, onEmptyTags.get()));
         }
-      }
-    }
-  }
-
-  private <T> void doLog(Signal<T> signal, Level level, Function<T, Tags> valueTags) {
-    var actualLevel = levelForSignal(signal, level);
-    if (logger.isEnabled(actualLevel)) {
-      switch (signal.getType()) {
-      case ON_NEXT:
-        logger.log(actualLevel,
-            createTaggedMessage(signal, valueTags.apply(signal.get())));
-        break;
-      case ON_ERROR:
-        logger.log(actualLevel,
-            createTaggedMessage(signal, errorMessageTag(signal.getThrowable())));
         break;
       default:
         // Ignore
@@ -109,16 +105,125 @@ public class SimpleLogger {
     }
   }
 
-  private <T> void doLog(Signal<T> signal, Level level, Tags valueTags) {
-    var actualLevel = levelForSignal(signal, level);
-    if (logger.isEnabled(actualLevel)) {
+  private class LogOnEmptyTags<T> implements Consumer<Signal<? extends T>> {
+    private final Level level;
+    private final Tags onEmptyTags;
+    private boolean valueSeen = false;
+
+    private LogOnEmptyTags(Level level, Tags onEmptyTags) {
+      this.level = level;
+      this.onEmptyTags = onEmptyTags;
+    }
+
+    @Override
+    public void accept(Signal<? extends T> signal) {
+      switch (signal.getType()) {
+      case ON_ERROR:
+      case ON_NEXT:
+        valueSeen = true;
+        break;
+      case ON_COMPLETE:
+        if (!valueSeen) {
+          logger.log(level,
+              createTaggedMessage(signal, onEmptyTags));
+        }
+        break;
+      default:
+        // Ignore
+      }
+    }
+  }
+
+  private class LogOnNextFunctionTags<T> implements Consumer<Signal<? extends T>> {
+    private final Level level;
+    private final Function<T, Tags> onNextTags;
+
+    private LogOnNextFunctionTags(Level level, Function<T, Tags> onNextTags) {
+      this.level = level;
+      this.onNextTags = onNextTags;
+    }
+
+    @Override
+    public void accept(Signal<? extends T> signal) {
+      if (signal.getType() == SignalType.ON_NEXT) {
+        logger.log(level,
+            createTaggedMessage(signal, onNextTags.apply(signal.get())));
+      }
+    }
+  }
+
+  private class LogOnNextTags<T> implements Consumer<Signal<? extends T>> {
+    private final Level level;
+    private final Tags onNextTags;
+
+    private LogOnNextTags(Level level, Tags onNextTags) {
+      this.level = level;
+      this.onNextTags = onNextTags;
+    }
+
+    @Override
+    public void accept(Signal<? extends T> signal) {
+      if (signal.getType() == SignalType.ON_NEXT) {
+        logger.log(level,
+            createTaggedMessage(signal, onNextTags));
+      }
+    }
+  }
+
+  private class LogOnError<T> implements Consumer<Signal<? extends T>> {
+    @Override
+    public void accept(Signal<? extends T> signal) {
+      if (signal.getType() == SignalType.ON_ERROR) {
+        logger.log(Level.ERROR,
+            createTaggedMessage(signal, errorMessageTag(signal.getThrowable())));
+      }
+    }
+  }
+
+  private class LogOnNextOrErrorFunctionTags<T> implements Consumer<Signal<? extends T>> {
+    private final Level level;
+    private final Function<T, Tags> onNextTags;
+
+    private LogOnNextOrErrorFunctionTags(Level level, Function<T, Tags> onNextTags) {
+      this.level = level;
+      this.onNextTags = onNextTags;
+    }
+
+    @Override
+    public void accept(Signal<? extends T> signal) {
+        switch (signal.getType()) {
+        case ON_NEXT:
+          logger.log(level,
+              createTaggedMessage(signal, onNextTags.apply(signal.get())));
+          break;
+        case ON_ERROR:
+          logger.log(Level.ERROR,
+              createTaggedMessage(signal, errorMessageTag(signal.getThrowable())));
+          break;
+        default:
+          // Ignore
+        }
+    }
+  }
+
+  private class LogOnNextOrErrorTags<T> implements Consumer<Signal<? extends T>> {
+    private final Level level;
+    private final Tags onNextTags;
+
+    private LogOnNextOrErrorTags(Level level, Tags onNextTags) {
+      this.level = level;
+      this.onNextTags = onNextTags;
+    }
+
+    @Override
+    public void accept(Signal<? extends T> signal) {
       switch (signal.getType()) {
       case ON_NEXT:
-        logger.log(actualLevel,
-            createTaggedMessage(signal, valueTags));
+        logger.log(level,
+            createTaggedMessage(signal, onNextTags));
         break;
       case ON_ERROR:
-        logger.log(actualLevel,
+        logger.log(Level.ERROR,
             createTaggedMessage(signal, errorMessageTag(signal.getThrowable())));
         break;
       default:
@@ -128,36 +233,93 @@ public class SimpleLogger {
   }
 
   public Consumer<Signal<?>> logTags(Level level, Tags valueTags) {
-    return signal -> doLog(signal, level, valueTags);
+    var shouldLogOnNext = logger.isEnabled(level);
+    var shouldLogOnError = logger.isEnabled(Level.ERROR);
+    if (shouldLogOnNext && shouldLogOnError) {
+      return new LogOnNextOrErrorTags<>(level, valueTags);
+    } else if (shouldLogOnNext) {
+      return new LogOnNextTags<>(level, valueTags);
+    } else if (shouldLogOnError) {
+      return onErrorLogger();
+    } else {
+      return noOpLogger();
+    }
   }
 
   public <T> Consumer<Signal<? extends T>> logTags(Level level, Function<T, Tags> valueTags) {
-    return signal -> doLog(signal, level, valueTags::apply);
+    var shouldLogOnNext = logger.isEnabled(level);
+    var shouldLogOnError = logger.isEnabled(Level.ERROR);
+    if (shouldLogOnNext && shouldLogOnError) {
+      return new LogOnNextOrErrorFunctionTags<>(level, valueTags);
+    } else if (shouldLogOnNext) {
+      return new LogOnNextFunctionTags<>(level, valueTags);
+    } else if (shouldLogOnError) {
+      return onErrorLogger();
+    } else {
+      return noOpLogger();
+    }
   }
 
   public Consumer<Signal<?>> log(Level level, String message) {
-    return signal -> doLog(signal, level, v -> messageTag(message));
+    var shouldLogOnNext = logger.isEnabled(level);
+    var shouldLogOnError = logger.isEnabled(Level.ERROR);
+    if (shouldLogOnNext && shouldLogOnError) {
+      return new LogOnNextOrErrorFunctionTags<>(level, v -> messageTag(message));
+    } else if (shouldLogOnNext) {
+      return new LogOnNextFunctionTags<>(level, v -> messageTag(message));
+    } else if (shouldLogOnError) {
+      return onErrorLogger();
+    } else {
+      return noOpLogger();
+    }
   }
 
   public <T> Consumer<Signal<? extends T>> log(Level level, Function<T, String> messageSupplier) {
-    return signal -> doLog(signal, level, v -> messageTag(messageSupplier.apply(v)));
+    var shouldLogOnNext = logger.isEnabled(level);
+    var shouldLogOnError = logger.isEnabled(Level.ERROR);
+    if (shouldLogOnNext && shouldLogOnError) {
+      return new LogOnNextOrErrorFunctionTags<>(level, v -> messageTag(messageSupplier.apply(v)));
+    } else if (shouldLogOnNext) {
+      return new LogOnNextFunctionTags<>(level, v -> messageTag(messageSupplier.apply(v)));
+    } else if (shouldLogOnError) {
+      return onErrorLogger();
+    } else {
+      return noOpLogger();
+    }
   }
 
   public Consumer<Signal<?>> logOnEmptyTags(Level level, Tags tags) {
-    return new LogOnEmpty<>(level, () -> tags);
+    if (logger.isEnabled(level)) {
+      return new LogOnEmptyTags<>(level, tags);
+    } else {
+      return noOpLogger();
+    }
   }
 
   public Consumer<Signal<?>> logOnEmptyTags(Level level, Supplier<Tags> tags) {
-    return new LogOnEmpty<>(level, tags);
+    if (logger.isEnabled(level)) {
+      return new LogOnEmptyTagsSupplier<>(level, tags);
+    } else {
+      return noOpLogger();
+    }
   }
 
   public Consumer<Signal<?>> logOnEmpty(Level level, String message) {
-    return new LogOnEmpty<>(level, () -> messageTag(message));
+    if (logger.isEnabled(level)) {
+      return new LogOnEmptyTagsSupplier<>(level, () -> messageTag(message));
+    } else {
+      return noOpLogger();
+    }
   }
 
   public Consumer<Signal<?>> logOnEmpty(Level level, Supplier<String> message) {
-    return new LogOnEmpty<>(level, () -> messageTag(message.get()));
+    if (logger.isEnabled(level)) {
+      return new LogOnEmptyTagsSupplier<>(level, () -> messageTag(message.get()));
+    } else {
+      return noOpLogger();
+    }
   }
+
 
   public Consumer<Signal<?>> errorTags(Tags valueTags) {
     return logTags(Level.ERROR, valueTags);

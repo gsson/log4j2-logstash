@@ -4,6 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.util.StackLocatorUtil;
 import reactor.util.context.Context;
+import reactor.util.context.ContextView;
 import se.fnord.logtags.log4j2_logstash.reactor.ContextTags;
 import se.fnord.logtags.tags.Tags;
 
@@ -20,7 +21,7 @@ class SimpleLogger {
     return new SimpleLogger(LogManager.getLogger(forClass), ContextTags::tagsFromContext);
   }
 
-  SimpleLogger(Logger logger, Function<Context, Tags> contextTags) {
+  SimpleLogger(Logger logger, Function<ContextView, Tags> contextTags) {
     this.logger = new ContextLogger(logger, contextTags);
   }
 

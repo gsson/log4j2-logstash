@@ -7,6 +7,7 @@ import org.apache.logging.log4j.util.StackLocatorUtil;
 import reactor.core.publisher.Signal;
 import reactor.core.publisher.SignalType;
 import reactor.util.context.Context;
+import reactor.util.context.ContextView;
 import se.fnord.logtags.log4j2_logstash.taggedmessage.TaggedMessage;
 import se.fnord.logtags.tags.Tags;
 
@@ -20,10 +21,10 @@ public class SimpleLogger {
   private static final Consumer<?> NO_LOG = s -> {};
 
   private final Logger logger;
-  private final Function<Context, Tags> tagsFromContext;
+  private final Function<ContextView, Tags> tagsFromContext;
   private final LogOnError<?> logOnError = new LogOnError<>();
 
-  SimpleLogger(Logger logger, Function<Context, Tags> tagsFromContext) {
+  SimpleLogger(Logger logger, Function<ContextView, Tags> tagsFromContext) {
     this.logger = logger;
     this.tagsFromContext = tagsFromContext;
   }
@@ -44,12 +45,12 @@ public class SimpleLogger {
     return forLogger(LogManager.getLogger(clazz));
   }
 
-  public SimpleLogger withContextTags(Function<Context, Tags> tagsFromContext) {
+  public SimpleLogger withContextTags(Function<ContextView, Tags> tagsFromContext) {
     return new SimpleLogger(logger, tagsFromContext);
   }
 
   private Tags withContextTags(Signal<?> signal, Tags tags) {
-    return tagsFromContext.apply(signal.getContext()).add(tags);
+    return tagsFromContext.apply(signal.getContextView()).add(tags);
   }
 
   private static Tags messageTag(String value) {

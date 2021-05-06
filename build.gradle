@@ -117,10 +117,6 @@ configure(subprojects.findAll {it.name != 'log4j2-logstash-bom'}) {
     }
 }
 
-wrapper {
-    gradleVersion = "${gradleVersion}"
-}
-
 project(':log4j2-logstash-bom') {
     apply plugin: 'java-platform'
     apply plugin: 'maven-publish'

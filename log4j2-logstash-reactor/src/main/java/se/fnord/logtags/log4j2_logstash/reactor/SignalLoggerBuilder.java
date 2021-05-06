@@ -4,6 +4,7 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.Logger;
 import reactor.core.publisher.Signal;
 import reactor.util.context.Context;
+import reactor.util.context.ContextView;
 import se.fnord.logtags.tags.Tags;
 
 import java.util.function.BiFunction;
@@ -13,7 +14,7 @@ import java.util.function.Predicate;
 
 public class SignalLoggerBuilder {
   public interface OnNextLoggerBuilder<T> {
-    OnNextLoggerBuilder<T> withContextTags(Function<Context, Tags> contextTags);
+    OnNextLoggerBuilder<T> withContextTags(Function<ContextView, Tags> contextTags);
 
     <U> OnNextLoggerBuilder<U> onNext(Level level, BiFunction<Tags, U, Tags> logOnNext);
     <U> OnNextLoggerBuilder<U> onNext(Level level, Predicate<Signal<? extends U>> onNextFilter, BiFunction<Tags, U, Tags> logOnNext);
@@ -24,7 +25,7 @@ public class SignalLoggerBuilder {
   }
 
   public interface OnErrorLoggerBuilder {
-    OnErrorLoggerBuilder withContextTags(Function<Context, Tags> contextTags);
+    OnErrorLoggerBuilder withContextTags(Function<ContextView, Tags> contextTags);
 
     <U> OnNextLoggerBuilder<U> onNext(Level level, BiFunction<Tags, U, Tags> logOnNext);
     <U> OnNextLoggerBuilder<U> onNext(Level level, Predicate<Signal<? extends U>> onNextFilter, BiFunction<Tags, U, Tags> logOnNext);
@@ -42,12 +43,12 @@ public class SignalLoggerBuilder {
 
 class OnErrorLoggerBuilderImpl implements SignalLoggerBuilder.OnErrorLoggerBuilder {
   private final Logger logger;
-  private final Function<Context, Tags> contextTags;
+  private final Function<ContextView, Tags> contextTags;
   private final Level onErrorLevel;
   private final BiFunction<Tags, Throwable, Tags> logOnError;
 
   OnErrorLoggerBuilderImpl(Logger logger,
-      Function<Context, Tags> contextTags,
+      Function<ContextView, Tags> contextTags,
       Level onErrorLevel,
       BiFunction<Tags, Throwable, Tags> logOnError) {
     this.logger = logger;
@@ -57,7 +58,7 @@ class OnErrorLoggerBuilderImpl implements SignalLoggerBuilder.OnErrorLoggerBuild
   }
 
   @Override
-  public OnErrorLoggerBuilderImpl withContextTags(Function<Context, Tags> contextTags) {
+  public OnErrorLoggerBuilderImpl withContextTags(Function<ContextView, Tags> contextTags) {
     return new OnErrorLoggerBuilderImpl(logger, contextTags, onErrorLevel, logOnError);
   }
 
@@ -87,7 +88,7 @@ class OnErrorLoggerBuilderImpl implements SignalLoggerBuilder.OnErrorLoggerBuild
 
 class OnNextLoggerBuilderImpl<T> implements SignalLoggerBuilder.OnNextLoggerBuilder<T> {
   private final Logger logger;
-  private final Function<Context, Tags> contextTags;
+  private final Function<ContextView, Tags> contextTags;
   private final Level onErrorLevel;
   private final BiFunction<Tags, Throwable, Tags> logOnError;
   private final Level onNextLevel;
@@ -95,7 +96,7 @@ class OnNextLoggerBuilderImpl<T> implements SignalLoggerBuilder.OnNextLoggerBuil
 
   OnNextLoggerBuilderImpl(
       Logger logger,
-      Function<Context, Tags> contextTags,
+      Function<ContextView, Tags> contextTags,
       Level onErrorLevel, BiFunction<Tags, Throwable, Tags> logOnError,
       Level onNextLevel,
       BiFunction<Tags, T, Tags> logOnNext) {
@@ -108,7 +109,7 @@ class OnNextLoggerBuilderImpl<T> implements SignalLoggerBuilder.OnNextLoggerBuil
   }
 
   @Override
-  public SignalLoggerBuilder.OnNextLoggerBuilder<T> withContextTags(Function<Context, Tags> contextTags) {
+  public SignalLoggerBuilder.OnNextLoggerBuilder<T> withContextTags(Function<ContextView, Tags> contextTags) {
     return new OnNextLoggerBuilderImpl<>(logger, contextTags, onErrorLevel, logOnError, onNextLevel, logOnNext);
   }
 
@@ -139,7 +140,7 @@ class OnNextLoggerBuilderImpl<T> implements SignalLoggerBuilder.OnNextLoggerBuil
 
 class FilteredOnNextLoggerBuilderImpl<T> implements SignalLoggerBuilder.OnNextLoggerBuilder<T> {
   private final Logger logger;
-  private final Function<Context, Tags> contextTags;
+  private final Function<ContextView, Tags> contextTags;
   private final Level onErrorLevel;
   private final BiFunction<Tags, Throwable, Tags> logOnError;
   private final Level onNextLevel;
@@ -148,7 +149,7 @@ class FilteredOnNextLoggerBuilderImpl<T> implements SignalLoggerBuilder.OnNextLo
 
   FilteredOnNextLoggerBuilderImpl(
       Logger logger,
-      Function<Context, Tags> contextTags,
+      Function<ContextView, Tags> contextTags,
       Level onErrorLevel, BiFunction<Tags, Throwable, Tags> logOnError,
       Level onNextLevel, Predicate<Signal<? extends T>> onNextFilter,
       BiFunction<Tags, T, Tags> logOnNext) {
@@ -162,7 +163,7 @@ class FilteredOnNextLoggerBuilderImpl<T> implements SignalLoggerBuilder.OnNextLo
   }
 
   @Override
-  public FilteredOnNextLoggerBuilderImpl<T> withContextTags(Function<Context, Tags> contextTags) {
+  public FilteredOnNextLoggerBuilderImpl<T> withContextTags(Function<ContextView, Tags> contextTags) {
     return new FilteredOnNextLoggerBuilderImpl<>(logger, contextTags, onErrorLevel, logOnError, onNextLevel, onNextFilter, logOnNext);
   }
 

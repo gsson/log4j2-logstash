@@ -70,19 +70,19 @@ public class SimpleSignalLogger<T> implements Consumer<Signal<? extends T>> {
     switch (signal.getType()) {
     case ON_NEXT:
       if (onNextLevel != null) {
-        logger.log(onNextLevel, signal.getContext(), signal.get(), onNextTags, null);
+        logger.log(onNextLevel, signal.getContextView(), signal.get(), onNextTags, null);
       }
       valueSeen = true;
       break;
     case ON_ERROR:
       if (onErrorLevel != null) {
-        logger.log(onErrorLevel, signal.getContext(), signal.getThrowable(), onErrorTags, signal.getThrowable());
+        logger.log(onErrorLevel, signal.getContextView(), signal.getThrowable(), onErrorTags, signal.getThrowable());
       }
       valueSeen = true;
       break;
     case ON_COMPLETE:
       if (!valueSeen && onEmptyLevel != null) {
-        logger.log(onEmptyLevel, signal.getContext(), onEmptyTags, null);
+        logger.log(onEmptyLevel, signal.getContextView(), onEmptyTags, null);
       }
       break;
     default:

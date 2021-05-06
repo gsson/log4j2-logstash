@@ -42,7 +42,7 @@ public class Main {
 
   private static Mono<ServerResponse> contextFilter(ServerRequest request, HandlerFunction<ServerResponse> handler) {
     return handler.handle(request)
-        .subscriberContext(ServerLogging.updateContext(request));
+        .contextWrite(ServerLogging.updateContext(request));
   }
 
   private static Mono<ServerResponse> logFilter(ServerRequest request, HandlerFunction<ServerResponse> handler) {
@@ -56,14 +56,14 @@ public class Main {
     return ServerResponse.ok()
         .bodyValue("hello world!")
         .doOnEach(log.info("This happened"))
-        .subscriberContext(ContextTags.addTag("another_tag", "value"));
+        .contextWrite(ContextTags.addTag("another_tag", "value"));
   }
 
   public Mono<ServerResponse> logStringFunction(ServerRequest request) {
     return ServerResponse.ok()
         .bodyValue("hello world!")
         .doOnEach(log.info(s -> "Have a look: " + s.rawStatusCode()))
-        .subscriberContext(ContextTags.addTag("another_tag", "value"));
+        .contextWrite(ContextTags.addTag("another_tag", "value"));
   }
 
   public Mono<ServerResponse> logTags(ServerRequest request) {
@@ -72,7 +72,7 @@ public class Main {
         .doOnEach(log.infoTags(Tags.of(
             "meaning", 42,
             "message", "This happened")))
-        .subscriberContext(ContextTags.addTag("another_tag", "value"));
+        .contextWrite(ContextTags.addTag("another_tag", "value"));
   }
 
   public Mono<ServerResponse> logTagsFunction(ServerRequest request) {
@@ -81,7 +81,7 @@ public class Main {
         .doOnEach(log.infoTags(s -> Tags.of(
             "test_status", s.rawStatusCode(),
             "message", "Have a look: " + s.rawStatusCode())))
-        .subscriberContext(ContextTags.addTag("another_tag", "value"));
+        .contextWrite(ContextTags.addTag("another_tag", "value"));
   }
 
   @Bean

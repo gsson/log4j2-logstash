@@ -3,6 +3,7 @@ package se.fnord.logtags.log4j2_logstash.reactor.sl2;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.Logger;
 import reactor.util.context.Context;
+import reactor.util.context.ContextView;
 import se.fnord.logtags.log4j2_logstash.taggedmessage.TaggedMessage;
 import se.fnord.logtags.tags.Tags;
 
@@ -12,14 +13,14 @@ import java.util.function.Supplier;
 
 public class ContextLogger {
   private final Logger logger;
-  private final Function<Context, Tags> contextTags;
+  private final Function<ContextView, Tags> contextTags;
 
-  ContextLogger(Logger logger, Function<Context, Tags> contextTags) {
+  ContextLogger(Logger logger, Function<ContextView, Tags> contextTags) {
     this.logger = Objects.requireNonNull(logger);
     this.contextTags = Objects.requireNonNull(contextTags);
   }
 
-  public void log(Level level, Context context, Tags tags, Throwable throwable) {
+  public void log(Level level, ContextView context, Tags tags, Throwable throwable) {
     if (logger.isEnabled(level)) {
       var allTags = contextTags.apply(context).add(tags);
       var message = new TaggedMessage(allTags, throwable);
@@ -27,7 +28,7 @@ public class ContextLogger {
     }
   }
 
-  public void log(Level level, Context context, Supplier<Tags> tags, Throwable throwable) {
+  public void log(Level level, ContextView context, Supplier<Tags> tags, Throwable throwable) {
     if (logger.isEnabled(level)) {
       var allTags = contextTags.apply(context).add(tags.get());
       var message = new TaggedMessage(allTags, throwable);
@@ -35,7 +36,7 @@ public class ContextLogger {
     }
   }
 
-  public <T> void log(Level level, Context context, T value, Function<? super T, Tags> tags, Throwable throwable) {
+  public <T> void log(Level level, ContextView context, T value, Function<? super T, Tags> tags, Throwable throwable) {
     if (logger.isEnabled(level)) {
       var allTags = contextTags.apply(context).add(tags.apply(value));
       var message = new TaggedMessage(allTags, throwable);

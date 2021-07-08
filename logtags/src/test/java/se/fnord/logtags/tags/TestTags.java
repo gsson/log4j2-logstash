@@ -31,6 +31,9 @@ public class TestTags {
             .tag("e", "f"));
         TagsUtil.assertForEach(Tags.of("a", "b", "c", "d", "e", "f", "g", "h"), TagsUtil.tag("a", "b"), TagsUtil
             .tag("c", "d"), TagsUtil.tag("e", "f"), TagsUtil.tag("g", "h"));
+        TagsUtil
+            .assertForEach(Tags.of(new String[] { "a", "b", "c", "d" }, new Object[] { "e", "f", "g", "h" }), TagsUtil.tag("a", "e"), TagsUtil
+                .tag("b", "f"), TagsUtil.tag("c", "g"), TagsUtil.tag("d", "h"));
     }
 
     @Test
@@ -47,6 +50,9 @@ public class TestTags {
         TagsUtil
             .assertForEach(Tags.empty().add("a", "b", "c", "d", "e", "f", "g", "h"), TagsUtil.tag("a", "b"), TagsUtil
                 .tag("c", "d"), TagsUtil.tag("e", "f"), TagsUtil.tag("g", "h"));
+        TagsUtil
+            .assertForEach(Tags.empty().add(new String[] { "a", "b", "c", "d" }, new Object[] { "e", "f", "g", "h" }), TagsUtil.tag("a", "e"), TagsUtil
+                .tag("b", "f"), TagsUtil.tag("c", "g"), TagsUtil.tag("d", "h"));
     }
 
     @Test
@@ -64,6 +70,8 @@ public class TestTags {
         m.put("a", singletonList(32));
 
         TagsUtil.assertForEach(Tags.of(m), TagsUtil.tag("a", "[32]"));
+
+        TagsUtil.assertForEach(Tags.of(new String[] { "a" }, new Object[] { singletonList(32) }), TagsUtil.tag("a", "[32]"));
     }
 
     @Test

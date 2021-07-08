@@ -1,6 +1,7 @@
 plugins {
     id 'com.github.ben-manes.versions'
     id 'com.github.spotbugs' apply false
+    id 'me.champeau.gradle.jmh' apply false
 }
 
 group 'se.fnord'
@@ -114,10 +115,6 @@ configure(subprojects.findAll {it.name != 'log4j2-logstash-bom'}) {
         testImplementation(enforcedPlatform("org.junit:junit-bom:${junit5}"))
         testFixturesApi(enforcedPlatform("org.junit:junit-bom:${junit5}"))
     }
-}
-
-wrapper {
-    gradleVersion = "${gradleVersion}"
 }
 
 project(':log4j2-logstash-bom') {
@@ -312,6 +309,25 @@ project(':log4j2-logstash-taggedmessage') {
 }
 
 project(':log4j2-logstash-reactor') {
+    apply plugin: 'me.champeau.gradle.jmh'
+    jmh {
+        warmup = '2s'
+        warmupIterations = 4
+        iterations = 4
+        fork = 1
+        timeOnIteration = '2s'
+
+        timeUnit = 'us'
+        profilers = [ 'gc' ]
+        // benchmarkMode = ['thrpt', 'sample']
+        benchmarkMode = ['thrpt']
+        duplicateClassesStrategy = 'warn'
+        includeTests = false
+        jmhVersion = '1.26'
+
+        //jvmArgsAppend = ['-XX:+UnlockExperimentalVMOptions', '-XX:+UseEpsilonGC', '-Xmx4g']
+    }
+
     dependencies {
         api "org.apache.logging.log4j:log4j-api"
         api "io.projectreactor:reactor-core"

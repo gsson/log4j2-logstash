@@ -4,6 +4,7 @@ import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.util.context.Context;
+import reactor.util.context.ContextView;
 import se.fnord.logtags.log4j2_logstash.reactor.ContextTags;
 import se.fnord.logtags.log4j2_logstash.reactor.ElapsedTime;
 import se.fnord.logtags.tags.Tags;
@@ -36,7 +37,7 @@ public class ServerLogging {
     return tags.add(responseTags(response));
   }
 
-  public static Tags tagsFromContext(Context context) {
+  public static Tags tagsFromContext(ContextView context) {
     return ContextTags.tagsFromContext(context).add(ElapsedTime.tagsFromContext(context));
   }
 

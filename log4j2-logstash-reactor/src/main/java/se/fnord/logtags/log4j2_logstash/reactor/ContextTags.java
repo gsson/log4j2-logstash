@@ -2,6 +2,7 @@ package se.fnord.logtags.log4j2_logstash.reactor;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import reactor.util.context.Context;
+import reactor.util.context.ContextView;
 import se.fnord.logtags.tags.Tags;
 
 import java.util.function.Function;
@@ -11,7 +12,7 @@ public class ContextTags {
   // Warning disabled since the return value of context.getOrDefault() is marked @Nullable,
   // but it can only return null if the supplied default value is null.
   @SuppressFBWarnings({ "NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE" })
-  public static Tags tagsFromContext(Context context) {
+  public static Tags tagsFromContext(ContextView context) {
     return context.getOrDefault(Tags.class, Tags.empty());
   }
 

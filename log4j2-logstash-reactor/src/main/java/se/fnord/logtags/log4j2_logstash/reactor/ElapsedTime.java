@@ -1,6 +1,7 @@
 package se.fnord.logtags.log4j2_logstash.reactor;
 
 import reactor.util.context.Context;
+import reactor.util.context.ContextView;
 import se.fnord.logtags.tags.Tags;
 
 import java.util.concurrent.TimeUnit;
@@ -27,7 +28,7 @@ public class ElapsedTime {
     return context.put(ElapsedTime.class, create(System::nanoTime));
   }
 
-  public static Tags tagsFromContext(Context context) {
+  public static Tags tagsFromContext(ContextView context) {
     return context.<ElapsedTime>getOrEmpty(ElapsedTime.class)
         .map(t -> Tags.of("elapsed_time", t.getElapsedMillis()))
         .orElse(Tags.empty());

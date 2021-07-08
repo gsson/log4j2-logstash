@@ -3,6 +3,7 @@ package se.fnord.logtags.tags;
 import edu.umd.cs.findbugs.annotations.Nullable;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -41,6 +42,15 @@ public interface Tags extends Serializable {
         return new TagsN(new String[] { key1, key2, key3, key4 }, new Object[] { TagsFactory.normaliseObjectValue(value1), TagsFactory.normaliseObjectValue(value2), TagsFactory.normaliseObjectValue(value3), TagsFactory.normaliseObjectValue(value4) }, this);
     }
 
+    default Tags add(String[] keys, Object[] values) {
+        var tagsLength = Math.min(keys.length, values.length);
+        var normalisedValues = new Object[tagsLength];
+        for (int i = 0; i < tagsLength; i++) {
+            normalisedValues[i] = TagsFactory.normaliseObjectValue(values[i]);
+        }
+        return new TagsN(Arrays.copyOf(keys, tagsLength), normalisedValues, this);
+    }
+
     default Tags add(Map<String, ?> tags) {
         return TagsFactory.fromMap(tags, this);
     }
@@ -75,6 +85,15 @@ public interface Tags extends Serializable {
 
     static Tags of(String key1, @Nullable Object value1, String key2, @Nullable Object value2, String key3, @Nullable Object value3, String key4, @Nullable Object value4) {
         return new TagsN(new String[] { key1, key2, key3, key4 }, new Object[] { TagsFactory.normaliseObjectValue(value1), TagsFactory.normaliseObjectValue(value2), TagsFactory.normaliseObjectValue(value3), TagsFactory.normaliseObjectValue(value4) }, empty());
+    }
+
+    static Tags of(String[] keys, Object[] values) {
+        var tagsLength = Math.min(keys.length, values.length);
+        var normalisedValues = new Object[tagsLength];
+        for (int i = 0; i < tagsLength; i++) {
+            normalisedValues[i] = TagsFactory.normaliseObjectValue(values[i]);
+        }
+        return new TagsN(Arrays.copyOf(keys, tagsLength), normalisedValues, empty());
     }
 
     static Tags of(Map<String, ?> tags) {

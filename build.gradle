@@ -1,5 +1,4 @@
 plugins {
-    id 'com.github.ben-manes.versions'
     id 'com.github.spotbugs' apply false
     id 'me.champeau.gradle.jmh' apply false
 }
@@ -69,6 +68,9 @@ configure(subprojects.findAll {it.name != 'log4j2-logstash-bom'}) {
     configurations.all {
         resolutionStrategy {
             failOnVersionConflict()
+            dependencySubstitution {
+                substitute module('org.apache.commons:commons-lang3:3.11') with module('org.apache.commons:commons-lang3:3.12.0')
+            }
         }
     }
 

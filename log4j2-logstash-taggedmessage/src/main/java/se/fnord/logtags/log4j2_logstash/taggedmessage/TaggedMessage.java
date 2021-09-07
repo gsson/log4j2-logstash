@@ -1,6 +1,7 @@
 package se.fnord.logtags.log4j2_logstash.taggedmessage;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.logging.log4j.message.AsynchronouslyFormattable;
 import org.apache.logging.log4j.message.Message;
 import org.apache.logging.log4j.util.Chars;
@@ -65,6 +66,7 @@ public class TaggedMessage implements Message, StringBuilderFormattable {
     @Nullable
     private final Throwable throwable;
 
+    @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "This is done according to the API spec")
     public TaggedMessage(Tags tags, @Nullable Throwable throwable) {
         this.tags = tags;
         this.throwable = throwable;
@@ -95,6 +97,7 @@ public class TaggedMessage implements Message, StringBuilderFormattable {
         return null;
     }
 
+    @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "This is done according to the API spec")
     @Override
     public Throwable getThrowable() {
         return throwable;

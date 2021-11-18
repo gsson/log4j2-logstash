@@ -385,6 +385,22 @@ public class SimpleLogger {
   public <T> Consumer<Signal<? extends T>> info(Function<T, String> messageSupplier) {
     return log(Level.INFO, messageSupplier);
   }
+  
+  public Consumer<Signal<?>> infoOnEmptyTags(Tags onEmptyTags) {
+    return logOnEmptyTags(Level.INFO, onEmptyTags);
+  }
+
+  public Consumer<Signal<?>> infoOnEmptyTags(Supplier<Tags> onEmptyTags) {
+    return logOnEmptyTags(Level.INFO, onEmptyTags);
+  }
+
+  public Consumer<Signal<?>> infoOnEmpty(String message) {
+    return logOnEmpty(Level.INFO, message);
+  }
+
+  public Consumer<Signal<?>> infoOnEmpty(Supplier<String> messageSupplier) {
+    return logOnEmpty(Level.INFO, messageSupplier);
+  }
 
   public Consumer<Signal<?>> debugTags(Tags tags) {
     return logTags(Level.DEBUG, tags);

@@ -40,7 +40,9 @@ dependencies {
         api("com.github.spotbugs:spotbugs-annotations:${spotbugsVersion}")
     }
 
-    implementation("com.github.spotbugs:spotbugs-annotations")
+    implementation("com.github.spotbugs:spotbugs-annotations") {
+        exclude group: 'org.junit'
+    }
     implementation(enforcedPlatform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}"))
 
     implementation("com.lmax:disruptor:${disruptor}")

@@ -1,5 +1,4 @@
 plugins {
-    id 'com.github.ben-manes.versions'
     id 'com.github.spotbugs'
     id 'org.springframework.boot'
     id 'java'
@@ -12,7 +11,7 @@ configurations.all {
         //     <!-- Do not upgrade the SLF4J version. 1.7.26 broke backward compatibility. Users can update the version if
         //      they do not require support for SLF4J's EventData -->
         dependencySubstitution {
-            substitute module('org.slf4j:slf4j-api:1.7.31') with module('org.slf4j:slf4j-api:1.7.25')
+            substitute module('org.slf4j:slf4j-api:1.7.32') with module('org.slf4j:slf4j-api:1.7.25')
         }
     }
     exclude group: 'junit', module: 'junit'
@@ -41,7 +40,9 @@ dependencies {
         api("com.github.spotbugs:spotbugs-annotations:${spotbugsVersion}")
     }
 
-    implementation("com.github.spotbugs:spotbugs-annotations")
+    implementation("com.github.spotbugs:spotbugs-annotations") {
+        exclude group: 'org.junit'
+    }
     implementation(enforcedPlatform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}"))
 
     implementation("com.lmax:disruptor:${disruptor}")

@@ -22,38 +22,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static se.fnord.logtags.log4j2_logstash.reactor.TaggedMessageMatcher.*;
 import static se.fnord.logtags.tags.TagsUtil.collectTags;
 import static se.fnord.logtags.tags.TagsUtil.tag;
 
 @ExtendWith(MockitoExtension.class)
 public class TestSignalLogger {
-
-  static ArgumentMatcher<MessageSupplier> errorMessageSupplier(Class<? extends Throwable> t, TagsUtil.Tag... tags) {
-    return ms -> {
-      var message = (TaggedMessage) ms.get();
-      var isExpectedExceptionType = t.isInstance(message.getThrowable());
-      var tagsAreEqual = collectTags(message.getTags()).equals(List.of(tags));
-
-      return isExpectedExceptionType && tagsAreEqual;
-    };
-  }
-
-  static ArgumentMatcher<MessageSupplier> valueMessageSupplier(TagsUtil.Tag... tags) {
-    return ms -> {
-      var message = (TaggedMessage) ms.get();
-      var tagsAreEqual = collectTags(message.getTags()).equals(List.of(tags));
-
-      return message.getThrowable() == null && tagsAreEqual;
-    };
-  }
-
-  static ArgumentMatcher<TaggedMessage> valueMessage(TagsUtil.Tag... tags) {
-    return message -> {
-      var tagsAreEqual = collectTags(message.getTags()).equals(List.of(tags));
-
-      return message.getThrowable() == null && tagsAreEqual;
-    };
-  }
 
   @Test
   public void testDefaultLoggerIgnoresNext(@Mock Logger logger) {

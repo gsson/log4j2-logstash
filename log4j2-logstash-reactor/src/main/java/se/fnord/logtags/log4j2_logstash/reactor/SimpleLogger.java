@@ -431,6 +431,18 @@ public class SimpleLogger {
     return logOnEmpty(Level.ERROR, messageSupplier);
   }
 
+  public Consumer<Signal<?>> errorCount(String countTagName, String message) {
+    return logCount(Level.ERROR, countTagName, message);
+  }
+
+  public Consumer<Signal<?>> errorCount(LongFunction<String> messageSupplier) {
+    return logCount(Level.ERROR, messageSupplier);
+  }
+
+  public Consumer<Signal<?>> errorCountTags(LongFunction<Tags> successTags) {
+    return logCountTags(Level.ERROR, successTags);
+  }
+
   public Consumer<Signal<?>> warnTags(Tags valueTags) {
     return logTags(Level.WARN, valueTags);
   }
@@ -477,6 +489,18 @@ public class SimpleLogger {
 
   public Consumer<Signal<?>> infoOnEmpty(Supplier<String> messageSupplier) {
     return logOnEmpty(Level.INFO, messageSupplier);
+  }
+
+  public Consumer<Signal<?>> infoCount(String countTagName, String message) {
+    return logCount(Level.INFO, countTagName, message);
+  }
+
+  public Consumer<Signal<?>> infoCount(LongFunction<String> messageSupplier) {
+    return logCount(Level.INFO, messageSupplier);
+  }
+
+  public Consumer<Signal<?>> infoCountTags(LongFunction<Tags> successTags) {
+    return logCountTags(Level.INFO, successTags);
   }
 
   public Consumer<Signal<?>> debugTags(Tags tags) {

@@ -6,7 +6,6 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.util.StackLocatorUtil;
 import reactor.core.publisher.Signal;
 import reactor.core.publisher.SignalType;
-import reactor.util.context.Context;
 import reactor.util.context.ContextView;
 import se.fnord.logtags.log4j2_logstash.taggedmessage.TaggedMessage;
 import se.fnord.logtags.tags.Tags;
@@ -15,10 +14,13 @@ import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.LongFunction;
 import java.util.function.Supplier;
 
 public class SimpleLogger {
   private static final Consumer<?> NO_LOG = s -> {};
+  private static final LongFunction<Tags> NO_COUNT_SUCCESS_TAGS = n -> Tags.empty();
+  private static final LongObjFunction<Throwable, Tags> NO_COUNT_ERROR_TAGS = (n, t) -> Tags.empty();
 
   private final Logger logger;
   private final Function<ContextView, Tags> tagsFromContext;
@@ -61,8 +63,16 @@ public class SimpleLogger {
     return Tags.of("message", Objects.toString(t));
   }
 
+  private static Tags errorMessageTag(long n, @Nullable Throwable t) {
+    return Tags.of("message", "Exception after " + n + " published items: " + t);
+  }
+
   private TaggedMessage createTaggedMessage(Signal<?> signal, Tags tags) {
-    return new TaggedMessage(withContextTags(signal, tags), signal.getThrowable());
+    return createTaggedMessage(signal, signal.getThrowable(), tags);
+  }
+
+  private TaggedMessage createTaggedMessage(Signal<?> signal, @Nullable Throwable throwable, Tags tags) {
+    return new TaggedMessage(withContextTags(signal, tags), throwable);
   }
 
 
@@ -127,6 +137,50 @@ public class SimpleLogger {
         if (!valueSeen) {
           logger.log(level,
               createTaggedMessage(signal, onEmptyTags));
+        }
+        break;
+      default:
+        // Ignore
+      }
+    }
+  }
+
+  private static boolean levelIsOff(Level level) {
+    return Level.OFF.isLessSpecificThan(level);
+  }
+
+  private class LogCountFunctionTags<T> implements Consumer<Signal<? extends T>> {
+    private final Level successLevel;
+    private final LongFunction<Tags> successTags;
+    private final Level errorLevel;
+    private final LongObjFunction<Throwable, Tags> errorTags;
+    private long valuesSeen = 0;
+
+    private LogCountFunctionTags(Level successLevel, @Nullable LongFunction<Tags> successTags, Level errorLevel, @Nullable LongObjFunction<Throwable, Tags> errorTags) {
+      this.successLevel = levelIsOff(successLevel) ? Level.OFF : successLevel;
+      this.successTags = levelIsOff(successLevel) ? NO_COUNT_SUCCESS_TAGS : Objects.requireNonNull(successTags);
+      this.errorLevel = levelIsOff(errorLevel) ? Level.OFF : errorLevel;
+      this.errorTags = levelIsOff(errorLevel) ? NO_COUNT_ERROR_TAGS : Objects.requireNonNull(errorTags);
+    }
+
+    @Override
+    public void accept(Signal<? extends T> signal) {
+      switch (signal.getType()) {
+      case ON_ERROR:
+        var error = signal.getThrowable();
+        if (!levelIsOff(errorLevel)) {
+          logger.log(errorLevel,
+              createTaggedMessage(signal, error, errorTags.apply(valuesSeen, error)));
+        }
+
+        break;
+      case ON_NEXT:
+        valuesSeen ++;
+        break;
+      case ON_COMPLETE:
+        if (!levelIsOff(successLevel)) {
+          logger.log(successLevel,
+              createTaggedMessage(signal, successTags.apply(valuesSeen)));
         }
         break;
       default:
@@ -321,6 +375,29 @@ public class SimpleLogger {
     }
   }
 
+  public Consumer<Signal<?>> logCount(Level level, String message) {
+    return logCount(level, "count", message);
+  }
+
+  public Consumer<Signal<?>> logCount(Level level, String countTagName, String message) {
+    return logCountTags(
+        level, n -> messageTag(message).add(countTagName, n),
+        Level.ERROR, (n, t) -> errorMessageTag(n, t).add(countTagName, n));
+  }
+
+  public Consumer<Signal<?>> logCount(Level level, LongFunction<String> message) {
+    return logCountTags(level, n -> messageTag(message.apply(n)));
+  }
+
+  public Consumer<Signal<?>> logCountTags(Level successLevel, LongFunction<Tags> successTags) {
+    return logCountTags(
+        successLevel, successTags,
+        Level.ERROR, SimpleLogger::errorMessageTag);
+  }
+
+  public Consumer<Signal<?>> logCountTags(Level successLevel, LongFunction<Tags> successTags, Level errorLevel, LongObjFunction<Throwable, Tags> errorTags) {
+    return new LogCountFunctionTags<>(successLevel, successTags, errorLevel, errorTags);
+  }
 
   public Consumer<Signal<?>> errorTags(Tags valueTags) {
     return logTags(Level.ERROR, valueTags);

@@ -13,19 +13,14 @@ import reactor.util.context.Context;
 import se.fnord.logtags.log4j2_logstash.taggedmessage.TaggedMessage;
 import se.fnord.logtags.tags.Tags;
 
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
-import static se.fnord.logtags.log4j2_logstash.reactor.TestSignalLogger.valueMessage;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 import static se.fnord.logtags.log4j2_logstash.reactor.TaggedMessageMatcher.errorMessage;
+import static se.fnord.logtags.log4j2_logstash.reactor.TaggedMessageMatcher.valueMessage;
 import static se.fnord.logtags.tags.TagsUtil.tag;
 
 @ExtendWith(MockitoExtension.class)
@@ -297,4 +292,80 @@ public class TestSimpleLogger {
         Level.TRACE);
   }
 
+  @Test
+  public void testLogCount() {
+    var simpleLogger = SimpleLogger.forLogger(logger);
+
+    reset(logger);
+
+    var signalConsumer = simpleLogger.logCount(Level.TRACE, "count", "hello world");
+
+    signalConsumer.accept(Signal.next("value1"));
+    signalConsumer.accept(Signal.next("value2"));
+    signalConsumer.accept(Signal.complete());
+
+    verify(logger).log(eq(Level.TRACE), argThat(valueMessage(
+        tag("message", "hello world"),
+        tag("count", 2L))));
+    verifyNoMoreInteractions(logger);
+  }
+
+  @Test
+  public void testLogCountError() {
+    var simpleLogger = SimpleLogger.forLogger(logger);
+
+    reset(logger);
+
+    var signalConsumer = simpleLogger.logCount(Level.TRACE, "count", "hello world");
+
+    signalConsumer.accept(Signal.next("value1"));
+    signalConsumer.accept(Signal.error(new IllegalStateException("oops")));
+
+    verify(logger).log(eq(Level.ERROR), argThat(errorMessage(IllegalStateException.class,
+        tag("message", "Exception after 1 published items: java.lang.IllegalStateException: oops"),
+        tag("count", 1L))));
+
+    verifyNoMoreInteractions(logger);
+  }
+
+  @Test
+  public void testLogCountFunctionSuccess() {
+    var simpleLogger = SimpleLogger.forLogger(logger);
+
+    reset(logger);
+
+    var signalConsumer = simpleLogger.logCountTags(
+        Level.TRACE, n -> Tags.of("message", "hello world", "count", n),
+        Level.ERROR, (n, t) -> Tags.of("message", Objects.toString(t), "count", n));
+
+    signalConsumer.accept(Signal.next("value1"));
+    signalConsumer.accept(Signal.next("value2"));
+    signalConsumer.accept(Signal.complete());
+
+    verify(logger).log(eq(Level.TRACE), argThat(valueMessage(
+        tag("message", "hello world"),
+        tag("count", 2L))));
+
+    verifyNoMoreInteractions(logger);
+  }
+
+  @Test
+  public void testLogCountFunctionError() {
+    var simpleLogger = SimpleLogger.forLogger(logger);
+
+    reset(logger);
+
+    var signalConsumer = simpleLogger.logCountTags(
+        Level.TRACE, n -> Tags.of("message", "hello world", "count", n),
+        Level.ERROR, (n, t) -> Tags.of("message", Objects.toString(t), "count", n));
+
+    signalConsumer.accept(Signal.next("value1"));
+    signalConsumer.accept(Signal.error(new IllegalStateException("oops")));
+
+    verify(logger).log(eq(Level.ERROR), argThat(errorMessage(IllegalStateException.class,
+        tag("message", "java.lang.IllegalStateException: oops"),
+        tag("count", 1L))));
+
+    verifyNoMoreInteractions(logger);
+  }
 }

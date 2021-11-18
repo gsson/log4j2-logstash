@@ -114,7 +114,7 @@ configure(subprojects.findAll {it.name != 'log4j2-logstash-bom'}) {
         testFixturesApi(platform("org.apache.logging.log4j:log4j-bom:${log4j}"))
 
         testImplementation(enforcedPlatform("com.fasterxml.jackson:jackson-bom:${jackson}"))
-        testFixturesApi(enforcedPlatform("com.fasterxml.jackson:jackson-bom:${jackson}"))
+        testFixturesApi(platform("com.fasterxml.jackson:jackson-bom:${jackson}"))
 
         testImplementation(enforcedPlatform("org.junit:junit-bom:${junit5}"))
         testFixturesApi(platform("org.junit:junit-bom:${junit5}"))

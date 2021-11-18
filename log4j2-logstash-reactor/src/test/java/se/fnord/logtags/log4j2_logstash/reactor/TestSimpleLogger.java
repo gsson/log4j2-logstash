@@ -12,9 +12,7 @@ import reactor.core.publisher.Signal;
 import reactor.util.context.Context;
 import se.fnord.logtags.log4j2_logstash.taggedmessage.TaggedMessage;
 import se.fnord.logtags.tags.Tags;
-import se.fnord.logtags.tags.TagsUtil;
 
-import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -26,7 +24,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
-import static se.fnord.logtags.tags.TagsUtil.collectTags;
+import static se.fnord.logtags.log4j2_logstash.reactor.TestSignalLogger.valueMessage;
+import static se.fnord.logtags.log4j2_logstash.reactor.TaggedMessageMatcher.errorMessage;
 import static se.fnord.logtags.tags.TagsUtil.tag;
 
 @ExtendWith(MockitoExtension.class)
@@ -35,24 +34,6 @@ public class TestSimpleLogger {
   @SuppressFBWarnings(value = "NP_NONNULL_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR", justification = "This value is injected by Mockito")
   private @Mock
   Logger logger;
-
-  static ArgumentMatcher<TaggedMessage> errorMessage(Class<? extends Throwable> t, TagsUtil.Tag... tags) {
-    return message -> {
-      var isExpectedExceptionType = t.isInstance(message.getThrowable());
-      var tagsAreEqual = collectTags(message.getTags()).equals(List.of(tags));
-
-      return isExpectedExceptionType && tagsAreEqual;
-    };
-  }
-
-  static ArgumentMatcher<TaggedMessage> valueMessage(TagsUtil.Tag... tags) {
-    return message -> {
-      var messageTags = collectTags(message.getTags());
-      var tagsAreEqual = messageTags.equals(List.of(tags));
-
-      return message.getThrowable() == null && tagsAreEqual;
-    };
-  }
 
   private void verifyLoggerOnNext(Supplier<Consumer<Signal<?>>> signalLogger, Level expectedLevel,
       ArgumentMatcher<TaggedMessage> expectedMessage) {

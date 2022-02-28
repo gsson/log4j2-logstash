@@ -151,7 +151,7 @@ project(':log4j2-logstash-bom') {
                 pom {
                     name = project.name
                     description = 'Bill of materials for log4j2-logstash projects'
-                    url = 'https://github.com/log4j2-logstash'
+                    url = 'https://github.com/gsson/log4j2-logstash'
                     packaging = 'pom'
 
                     scm {
@@ -212,7 +212,7 @@ project(':logtags') {
                 pom {
                     name = project.name
                     description = 'Immutable tags structure'
-                    url = 'https://github.com/log4j2-logstash'
+                    url = 'https://github.com/gsson/log4j2-logstash'
                     packaging = 'jar'
 
                     scm {
@@ -272,7 +272,7 @@ project(':log4j2-logstash-taggedmessage') {
                 pom {
                     name = project.name
                     description = 'Tagged message type for Log4J2'
-                    url = 'https://github.com/log4j2-logstash'
+                    url = 'https://github.com/gsson/log4j2-logstash'
                     packaging = 'jar'
 
                     scm {
@@ -357,7 +357,7 @@ project(':log4j2-logstash-reactor') {
                 pom {
                     name = project.name
                     description = 'Project Reactor signal loggers'
-                    url = 'https://github.com/log4j2-logstash'
+                    url = 'https://github.com/gsson/log4j2-logstash'
                     packaging = 'jar'
 
                     scm {
@@ -428,7 +428,7 @@ project(':log4j2-logstash-layout') {
                 pom {
                     name = project.name
                     description = 'Logstash json event layout for Log4J2'
-                    url = 'https://github.com/log4j2-logstash'
+                    url = 'https://github.com/gsson/log4j2-logstash'
                     packaging = 'jar'
 
                     scm {

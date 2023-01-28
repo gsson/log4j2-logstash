@@ -7,13 +7,8 @@ plugins {
 configurations.all {
     resolutionStrategy {
         failOnVersionConflict()
-        // From https://search.maven.org/artifact/org.apache.logging.log4j/log4j-slf4j-impl/2.14.1/jar
-        //     <!-- Do not upgrade the SLF4J version. 1.7.26 broke backward compatibility. Users can update the version if
-        //      they do not require support for SLF4J's EventData -->
-        dependencySubstitution {
-            substitute module('org.slf4j:slf4j-api:1.7.32') with module('org.slf4j:slf4j-api:1.7.25')
-        }
     }
+
     exclude group: 'junit', module: 'junit'
     exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
     exclude module: 'spring-boot-starter-logging'

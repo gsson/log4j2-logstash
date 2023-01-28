@@ -65,6 +65,15 @@ configure(subprojects.findAll {it.name != 'log4j2-logstash-bom'}) {
         }
     }
 
+    configurations.spotbugs {
+        resolutionStrategy {
+            failOnVersionConflict()
+            dependencySubstitution {
+                substitute module('org.slf4j:slf4j-api') using module('org.slf4j:slf4j-api:2.0.0')
+            }
+        }
+    }
+
     configurations.all {
         resolutionStrategy {
             failOnVersionConflict()

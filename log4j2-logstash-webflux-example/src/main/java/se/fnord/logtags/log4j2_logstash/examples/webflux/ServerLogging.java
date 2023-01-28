@@ -17,7 +17,7 @@ public class ServerLogging {
   public static Tags requestTags(ServerRequest request) {
     var requestId = request.exchange().getRequest().getId();
 
-    var method = request.methodName();
+    var method = request.method().name();
     var path = request.attribute(RouterFunctions.MATCHING_PATTERN_ATTRIBUTE)
         .map(Object::toString)
         .orElse(request.path());
@@ -30,7 +30,7 @@ public class ServerLogging {
   }
 
   public static Tags responseTags(ServerResponse response) {
-    return Tags.of("status_code", Objects.toString(response.rawStatusCode()));
+    return Tags.of("status_code", Objects.toString(response.statusCode().value()));
   }
 
   public static Tags addResponseTags(Tags tags, ServerResponse response) {

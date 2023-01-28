@@ -62,7 +62,7 @@ public class Main {
   public Mono<ServerResponse> logStringFunction(ServerRequest request) {
     return ServerResponse.ok()
         .bodyValue("hello world!")
-        .doOnEach(log.info(s -> "Have a look: " + s.rawStatusCode()))
+        .doOnEach(log.info(s -> "Have a look: " + s.statusCode().value()))
         .contextWrite(ContextTags.addTag("another_tag", "value"));
   }
 
@@ -79,8 +79,8 @@ public class Main {
     return ServerResponse.ok()
         .bodyValue("hello world!")
         .doOnEach(log.infoTags(s -> Tags.of(
-            "test_status", s.rawStatusCode(),
-            "message", "Have a look: " + s.rawStatusCode())))
+            "test_status", s.statusCode().value(),
+            "message", "Have a look: " + s.statusCode().value())))
         .contextWrite(ContextTags.addTag("another_tag", "value"));
   }
 

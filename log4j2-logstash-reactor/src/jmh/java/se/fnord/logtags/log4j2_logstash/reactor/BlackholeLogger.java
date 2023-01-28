@@ -510,10 +510,12 @@ public class BlackholeLogger implements Logger {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public void entry() {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public void entry(Object... params) {
         blackhole.consume(params);
     }
@@ -909,10 +911,12 @@ public class BlackholeLogger implements Logger {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public void exit() {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public <R> R exit(R result) {
         blackhole.consume(result);
         return result;

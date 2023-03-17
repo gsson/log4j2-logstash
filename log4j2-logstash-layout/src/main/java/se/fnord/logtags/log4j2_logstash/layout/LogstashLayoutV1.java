@@ -57,6 +57,7 @@ public class LogstashLayoutV1 extends AbstractLayout<String> implements StringLa
     private final boolean includeStacktrace;
     private final boolean includeThreadContext;
     private final boolean includeTimestamp;
+    private final boolean includeNullTags;
     private final String objectHeader;
     private final StringBuilderEncoder encoder;
 
@@ -76,6 +77,9 @@ public class LogstashLayoutV1 extends AbstractLayout<String> implements StringLa
         @PluginBuilderAttribute
         private boolean includeTimestamp = true;
 
+        @PluginBuilderAttribute
+        private boolean includeNullTags = true;
+
         public Builder() {
             super();
         }
@@ -84,7 +88,7 @@ public class LogstashLayoutV1 extends AbstractLayout<String> implements StringLa
         public LogstashLayoutV1 build() {
             return new LogstashLayoutV1(getConfiguration(),
                     host != null ? host : NetUtils.getLocalHostname(),
-                    includeStacktrace, includeThreadContext, includeTimestamp);
+                    includeStacktrace, includeThreadContext, includeTimestamp, includeNullTags);
         }
 
         public String getHost() {
@@ -101,6 +105,10 @@ public class LogstashLayoutV1 extends AbstractLayout<String> implements StringLa
 
         public boolean isIncludeTimestamp() {
             return includeTimestamp;
+        }
+
+        public boolean isIncludeNullTags() {
+            return includeNullTags;
         }
 
         public B setHost(String host) {
@@ -122,14 +130,21 @@ public class LogstashLayoutV1 extends AbstractLayout<String> implements StringLa
             this.includeTimestamp = includeTimestamp;
             return asBuilder();
         }
+
+        public B setIncludeNullTags(boolean includeNullTags) {
+            this.includeNullTags = includeNullTags;
+            return asBuilder();
+        }
     }
 
-    private LogstashLayoutV1(Configuration config, String host, boolean includeStacktrace, boolean includeThreadContext, boolean includeTimestamp) {
+    private LogstashLayoutV1(Configuration config, String host, boolean includeStacktrace, boolean includeThreadContext,
+        boolean includeTimestamp, boolean includeNullTags) {
         super(config, null, null);
         this.objectHeader = renderObjectHeader(1, host);
         this.includeStacktrace = includeStacktrace;
         this.includeThreadContext = includeThreadContext;
         this.includeTimestamp = includeTimestamp;
+        this.includeNullTags = includeNullTags;
         this.encoder = new StringBuilderEncoder(UTF_8);
     }
 
@@ -392,6 +407,8 @@ public class LogstashLayoutV1 extends AbstractLayout<String> implements StringLa
 
     @Override
     public void nullTag(CharSequence key, StringBuilder stringBuilder) {
-        LogstashLayoutV1.appendTaggedNullValue(key, stringBuilder);
+        if (includeNullTags) {
+            LogstashLayoutV1.appendTaggedNullValue(key, stringBuilder);
+        }
     }
 }

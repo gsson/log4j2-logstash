@@ -281,6 +281,7 @@ public class LogstashLayoutV1Test {
                 .setMessage(new TaggedMessage(Tags.of(
                         "message", "message",
                         "number", 42,
+                        "null", null,
                         "boolean", true), null))
                 .build();
 
@@ -295,7 +296,42 @@ public class LogstashLayoutV1Test {
                 .node("level_value").isEqualTo(7)
                 .node("message").isEqualTo("message")
                 .node("number").isEqualTo(42)
+                .node("null").isEqualTo(null)
                 .node("boolean").isEqualTo(true);
+
+        assertEquals(s, toByteArray(layout, event));
+        assertEquals(s, encode(layout, event));
+    }
+
+    @Test
+    public void rendersTaggedMessageOmittingNullTags() {
+        LogstashLayoutV1 layout = LogstashLayoutV1.newBuilder()
+            .setHost("host-name")
+            .setIncludeNullTags(false)
+            .build();
+
+        Log4jLogEvent event = Log4jLogEvent.newBuilder()
+            .setTimeMillis(1)
+            .setLevel(Level.DEBUG)
+            .setMessage(new TaggedMessage(Tags.of(
+                "message", "message",
+                "number", 42,
+                "null", null,
+                "boolean", true), null))
+            .build();
+
+        String s = layout.toSerializable(event);
+        assertTrue(s.endsWith("\n"));
+
+        assertThatJson(s)
+            .node("@version").isEqualTo(1)
+            .node("@timestamp").isEqualTo("1970-01-01T00:00:00.001Z")
+            .node("source_host").isEqualTo("host-name")
+            .node("level").isEqualTo("DEBUG")
+            .node("level_value").isEqualTo(7)
+            .node("message").isEqualTo("message")
+            .node("number").isEqualTo(42)
+            .node("boolean").isEqualTo(true);
 
         assertEquals(s, toByteArray(layout, event));
         assertEquals(s, encode(layout, event));

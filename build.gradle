@@ -78,7 +78,7 @@ configure(subprojects.findAll {it.name != 'log4j2-logstash-bom'}) {
         resolutionStrategy {
             failOnVersionConflict()
             dependencySubstitution {
-                substitute module('org.apache.commons:commons-lang3:3.11') with module('org.apache.commons:commons-lang3:3.12.0')
+                substitute module('org.apache.commons:commons-lang3:3.11') using module('org.apache.commons:commons-lang3:3.12.0')
             }
         }
     }

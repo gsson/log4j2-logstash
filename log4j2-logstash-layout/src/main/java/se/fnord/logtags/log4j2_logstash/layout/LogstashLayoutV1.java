@@ -15,6 +15,7 @@ import org.apache.logging.log4j.core.layout.ByteBufferDestination;
 import org.apache.logging.log4j.core.layout.StringBuilderEncoder;
 import org.apache.logging.log4j.core.net.Severity;
 import org.apache.logging.log4j.core.pattern.DatePatternConverter;
+import org.apache.logging.log4j.core.pattern.NameAbbreviator;
 import org.apache.logging.log4j.core.util.JsonUtils;
 import org.apache.logging.log4j.core.util.NetUtils;
 import org.apache.logging.log4j.core.util.StringBuilderWriter;
@@ -59,6 +60,7 @@ public class LogstashLayoutV1 extends AbstractLayout<String> implements StringLa
     private final boolean includeTimestamp;
     private final boolean includeNullTags;
     private final String objectHeader;
+    private final StacktraceFormat stacktraceFormat;
     private final StringBuilderEncoder encoder;
 
     public static class Builder<B extends Builder<B>> extends AbstractLayout.Builder<B>
@@ -70,6 +72,16 @@ public class LogstashLayoutV1 extends AbstractLayout<String> implements StringLa
 
         @PluginBuilderAttribute
         private boolean includeStacktrace = true;
+
+        @PluginBuilderAttribute
+        @Nullable
+        private String stacktracePattern = null;
+
+        @PluginBuilderAttribute
+        private int stacktraceMaxLength = Integer.MAX_VALUE;
+
+        @PluginBuilderAttribute
+        private int stacktraceMaxFrames = Integer.MAX_VALUE;
 
         @PluginBuilderAttribute
         private boolean includeThreadContext = true;
@@ -86,13 +98,29 @@ public class LogstashLayoutV1 extends AbstractLayout<String> implements StringLa
 
         @Override
         public LogstashLayoutV1 build() {
+            var abbreviator = stacktracePattern == null ? NameAbbreviator.getDefaultAbbreviator() : NameAbbreviator.getAbbreviator(stacktracePattern);
+            var stacktraceFormat = new StacktraceFormat(abbreviator, stacktraceMaxLength, stacktraceMaxFrames);
             return new LogstashLayoutV1(getConfiguration(),
                     host != null ? host : NetUtils.getLocalHostname(),
-                    includeStacktrace, includeThreadContext, includeTimestamp, includeNullTags);
+                    includeStacktrace, includeThreadContext, includeTimestamp, includeNullTags, stacktraceFormat);
         }
 
+        @Nullable
         public String getHost() {
             return host;
+        }
+
+        @Nullable
+        public String getStacktracePattern() {
+            return stacktracePattern;
+        }
+
+        public int getStacktraceMaxLength() {
+            return stacktraceMaxLength;
+        }
+
+        public int getStacktraceMaxFrames() {
+            return stacktraceMaxFrames;
         }
 
         public boolean isIncludeStacktrace() {
@@ -113,6 +141,21 @@ public class LogstashLayoutV1 extends AbstractLayout<String> implements StringLa
 
         public B setHost(String host) {
             this.host = host;
+            return asBuilder();
+        }
+
+        public B setStacktracePattern(String stacktracePattern) {
+            this.stacktracePattern = stacktracePattern;
+            return asBuilder();
+        }
+
+        public B setStacktraceMaxLength(int stacktraceMaxLength) {
+            this.stacktraceMaxLength = stacktraceMaxLength;
+            return asBuilder();
+        }
+
+        public B setStacktraceMaxFrames(int stacktraceMaxFrames) {
+            this.stacktraceMaxFrames = stacktraceMaxFrames;
             return asBuilder();
         }
 
@@ -138,13 +181,14 @@ public class LogstashLayoutV1 extends AbstractLayout<String> implements StringLa
     }
 
     private LogstashLayoutV1(Configuration config, String host, boolean includeStacktrace, boolean includeThreadContext,
-        boolean includeTimestamp, boolean includeNullTags) {
+        boolean includeTimestamp, boolean includeNullTags, StacktraceFormat stacktraceFormat) {
         super(config, null, null);
         this.objectHeader = renderObjectHeader(1, host);
         this.includeStacktrace = includeStacktrace;
         this.includeThreadContext = includeThreadContext;
         this.includeTimestamp = includeTimestamp;
         this.includeNullTags = includeNullTags;
+        this.stacktraceFormat = stacktraceFormat;
         this.encoder = new StringBuilderEncoder(UTF_8);
     }
 
@@ -377,11 +421,9 @@ public class LogstashLayoutV1 extends AbstractLayout<String> implements StringLa
         return stringBuilder;
     }
 
-    static void appendThrowable(Throwable throwable, StringBuilder textBuilder, StringBuilder jsonBuilder) {
+    void appendThrowable(Throwable throwable, StringBuilder textBuilder, StringBuilder jsonBuilder) {
         textBuilder.setLength(0);
-        StringBuilderWriter sw = new StringBuilderWriter(textBuilder);
-        PrintWriter pw = new PrintWriter(sw);
-        throwable.printStackTrace(pw);
+        stacktraceFormat.appendThrowable(throwable, textBuilder);
         JsonUtils.quoteAsString(textBuilder, jsonBuilder);
     }
 

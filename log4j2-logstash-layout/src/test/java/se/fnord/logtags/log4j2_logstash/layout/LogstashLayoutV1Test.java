@@ -76,8 +76,16 @@ public class LogstashLayoutV1Test {
         IllegalArgumentException test = new IllegalArgumentException("Test");
         StringBuilder textBuilder = new StringBuilder();
         StringBuilder jsonBuilder = new StringBuilder();
-        LogstashLayoutV1.appendThrowable(test, textBuilder, jsonBuilder);
+        LogstashLayoutV1.newBuilder().build().appendThrowable(test, textBuilder, jsonBuilder);
         assertTrue(jsonBuilder.toString().startsWith("java.lang.IllegalArgumentException: Test"));
+
+        textBuilder.setLength(0);
+        jsonBuilder.setLength(0);
+        LogstashLayoutV1.newBuilder()
+            .setStacktraceMaxLength(10)
+            .build()
+            .appendThrowable(test, textBuilder, jsonBuilder);
+        assertEquals("java.l...\\n", jsonBuilder.toString());
     }
 
     private static final Log4jLogEvent LOG_EVENT = Log4jLogEvent.newBuilder()

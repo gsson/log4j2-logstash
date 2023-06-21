@@ -59,6 +59,10 @@ public class Main {
         .contextWrite(ContextTags.addTag("another_tag", "value"));
   }
 
+  public Mono<ServerResponse> returnError(ServerRequest _request) {
+    return Mono.error(new IllegalArgumentException("This is an error"));
+  }
+
   public Mono<ServerResponse> logStringFunction(ServerRequest request) {
     return ServerResponse.ok()
         .bodyValue("hello world!")
@@ -88,6 +92,7 @@ public class Main {
   public RouterFunction<ServerResponse> routes() {
     return RouterFunctions
         .route(RequestPredicates.GET("/logString"), this::logString)
+        .andRoute(RequestPredicates.GET("/returnError"), this::returnError)
         .andRoute(RequestPredicates.GET("/logStringFunction"), this::logStringFunction)
         .andRoute(RequestPredicates.GET("/logTags"), this::logTags)
         .andRoute(RequestPredicates.GET("/logTagsFunction"), this::logTagsFunction)

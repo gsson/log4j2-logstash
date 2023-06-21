@@ -1,6 +1,7 @@
 plugins {
     id 'com.github.spotbugs' apply false
-    id 'me.champeau.gradle.jmh' apply false
+    id 'me.champeau.jmh' apply false
+    id 'com.github.ben-manes.versions'
 }
 
 group 'se.fnord'
@@ -69,7 +70,7 @@ configure(subprojects.findAll {it.name != 'log4j2-logstash-bom'}) {
         resolutionStrategy {
             failOnVersionConflict()
             dependencySubstitution {
-                substitute module('org.slf4j:slf4j-api') using module('org.slf4j:slf4j-api:2.0.0')
+                substitute module('org.slf4j:slf4j-api') using module("org.slf4j:slf4j-api:${slf4j}")
             }
         }
     }
@@ -77,9 +78,6 @@ configure(subprojects.findAll {it.name != 'log4j2-logstash-bom'}) {
     configurations.all {
         resolutionStrategy {
             failOnVersionConflict()
-            dependencySubstitution {
-                substitute module('org.apache.commons:commons-lang3:3.11') using module('org.apache.commons:commons-lang3:3.12.0')
-            }
         }
     }
 
@@ -109,6 +107,7 @@ configure(subprojects.findAll {it.name != 'log4j2-logstash-bom'}) {
         }
 
         implementation("com.github.spotbugs:spotbugs-annotations") {
+            exclude group: "org.apache.logging.log4j"
             exclude group: "org.junit"
         }
 
@@ -322,7 +321,7 @@ project(':log4j2-logstash-taggedmessage') {
 }
 
 project(':log4j2-logstash-reactor') {
-    apply plugin: 'me.champeau.gradle.jmh'
+    apply plugin: 'me.champeau.jmh'
     jmh {
         warmup = '2s'
         warmupIterations = 4
@@ -334,9 +333,9 @@ project(':log4j2-logstash-reactor') {
         profilers = [ 'gc' ]
         // benchmarkMode = ['thrpt', 'sample']
         benchmarkMode = ['thrpt']
-        duplicateClassesStrategy = 'warn'
+        duplicateClassesStrategy = DuplicatesStrategy.WARN
         includeTests = false
-        jmhVersion = '1.26'
+        jmhVersion = '1.36'
 
         //jvmArgsAppend = ['-XX:+UnlockExperimentalVMOptions', '-XX:+UseEpsilonGC', '-Xmx4g']
     }

@@ -4,6 +4,7 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.Marker;
 import org.apache.logging.log4j.message.EntryMessage;
+import org.apache.logging.log4j.message.FlowMessageFactory;
 import org.apache.logging.log4j.message.Message;
 import org.apache.logging.log4j.message.MessageFactory;
 import org.apache.logging.log4j.util.MessageSupplier;
@@ -23,6 +24,11 @@ public class BlackholeLogger implements Logger {
 
     @Override
     public <MF extends MessageFactory> MF getMessageFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public FlowMessageFactory getFlowMessageFactory() {
         throw new UnsupportedOperationException();
     }
 

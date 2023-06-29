@@ -2,20 +2,15 @@ package se.fnord.logtags.log4j2_logstash.reactor;
 
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.util.MessageSupplier;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Signal;
 import reactor.util.context.Context;
-import se.fnord.logtags.log4j2_logstash.taggedmessage.TaggedMessage;
 import se.fnord.logtags.tags.Tags;
-import se.fnord.logtags.tags.TagsUtil;
 
 import java.io.Serial;
-import java.util.List;
 
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -23,8 +18,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static se.fnord.logtags.log4j2_logstash.reactor.SignalFilters.errorInstanceOf;
 import static se.fnord.logtags.log4j2_logstash.reactor.TaggedMessageMatcher.*;
-import static se.fnord.logtags.tags.TagsUtil.collectTags;
 import static se.fnord.logtags.tags.TagsUtil.tag;
 
 @ExtendWith(MockitoExtension.class)
@@ -164,14 +159,10 @@ public class TestSignalLogger {
     }
   }
 
-  private static boolean onErrorFilter(Signal<?> signal) {
-    return signal.getThrowable() instanceof LoggedException;
-  }
-
   @Test
   public void testOnErrorFilterSkipsOnFilterFalse(@Mock Logger logger) {
     var signalLogger = SignalLoggerBuilder.forLogger(logger)
-        .onError(Level.ERROR, TestSignalLogger::onErrorFilter, (t, ex) -> t.add("message", ex.getMessage()))
+        .onError(Level.ERROR, errorInstanceOf(LoggedException.class), (t, ex) -> t.add("message", ex.getMessage()))
         .build();
     when(logger.isEnabled(Level.ERROR))
         .thenReturn(true);
@@ -187,7 +178,7 @@ public class TestSignalLogger {
   @Test
   public void testOnErrorFilterLogsOnFilterTrue(@Mock Logger logger) {
     var signalLogger = SignalLoggerBuilder.forLogger(logger)
-        .onError(Level.ERROR, TestSignalLogger::onErrorFilter, (t, ex) -> t.add("message", ex.getMessage()))
+        .onError(Level.ERROR, errorInstanceOf(LoggedException.class), (t, ex) -> t.add("message", ex.getMessage()))
         .build();
     when(logger.isEnabled(Level.ERROR))
         .thenReturn(true);

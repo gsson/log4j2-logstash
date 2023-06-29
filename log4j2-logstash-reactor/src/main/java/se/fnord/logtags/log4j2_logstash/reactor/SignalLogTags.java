@@ -32,4 +32,9 @@ class SignalLogTags<T> implements Function<Signal<? extends T>, Tags> {
     }
     return tags;
   }
+
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  public Function<Signal<?>, Tags> eraseSignalType() {
+    return (Function<Signal<?>, Tags>) (Function) this;
+  }
 }

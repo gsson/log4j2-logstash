@@ -15,11 +15,10 @@ class ThrowableLogger implements Consumer<Signal<?>> {
   private final Level level;
   private final Function<Signal<?>, Tags> logTags;
 
-  @SuppressWarnings({ "rawtypes", "unchecked" })
-  <T> ThrowableLogger(Logger logger, Level level, Function<Signal<? extends T>, Tags> logTags) {
+  ThrowableLogger(Logger logger, Level level, Function<Signal<?>, Tags> logTags) {
     this.logger = logger;
     this.level = level;
-    this.logTags = (Function<Signal<?>, Tags>) (Function) logTags;
+    this.logTags = logTags;
   }
 
   private MessageSupplier messageSupplier(Signal<?> signal) {

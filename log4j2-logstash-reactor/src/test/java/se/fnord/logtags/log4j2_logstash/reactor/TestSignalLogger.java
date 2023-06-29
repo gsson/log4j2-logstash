@@ -14,6 +14,7 @@ import se.fnord.logtags.log4j2_logstash.taggedmessage.TaggedMessage;
 import se.fnord.logtags.tags.Tags;
 import se.fnord.logtags.tags.TagsUtil;
 
+import java.io.Serial;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.argThat;
@@ -141,6 +142,62 @@ public class TestSignalLogger {
     signalLogger.accept(Signal.next("hello"));
     verify(logger)
         .isEnabled(eq(Level.INFO));
+
+    verifyNoMoreInteractions(logger);
+  }
+
+  static class LoggedException extends RuntimeException {
+    @Serial
+    private static final long serialVersionUID = 1;
+
+    LoggedException() {
+      super("log me!");
+    }
+  }
+
+  static class UnloggedException extends RuntimeException {
+    @Serial
+    private static final long serialVersionUID = 1;
+
+    UnloggedException() {
+      super("skip me!");
+    }
+  }
+
+  private static boolean onErrorFilter(Signal<?> signal) {
+    return signal.getThrowable() instanceof LoggedException;
+  }
+
+  @Test
+  public void testOnErrorFilterSkipsOnFilterFalse(@Mock Logger logger) {
+    var signalLogger = SignalLoggerBuilder.forLogger(logger)
+        .onError(Level.ERROR, TestSignalLogger::onErrorFilter, (t, ex) -> t.add("message", ex.getMessage()))
+        .build();
+    when(logger.isEnabled(Level.ERROR))
+        .thenReturn(true);
+
+    signalLogger.accept(Signal.error(new UnloggedException()));
+    verify(logger)
+        .isEnabled(eq(Level.ERROR));
+
+    verifyNoMoreInteractions(logger);
+  }
+
+
+  @Test
+  public void testOnErrorFilterLogsOnFilterTrue(@Mock Logger logger) {
+    var signalLogger = SignalLoggerBuilder.forLogger(logger)
+        .onError(Level.ERROR, TestSignalLogger::onErrorFilter, (t, ex) -> t.add("message", ex.getMessage()))
+        .build();
+    when(logger.isEnabled(Level.ERROR))
+        .thenReturn(true);
+
+    signalLogger.accept(Signal.error(new LoggedException()));
+    verify(logger)
+        .isEnabled(eq(Level.ERROR));
+
+    verify(logger).log(eq(Level.ERROR), argThat(
+        errorMessage(LoggedException.class, tag("message", "log me!"))));
 
     verifyNoMoreInteractions(logger);
   }

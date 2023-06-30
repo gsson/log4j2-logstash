@@ -59,6 +59,10 @@ public interface Tags extends Serializable {
         return TagsFactory.compose(tags, this);
     }
 
+    default Tags add(ToTags tags) {
+        return TagsFactory.compose(tags.toTags(), this);
+    }
+
     static Tags of(String key, @Nullable Object value) {
         return new Tags1(key, TagsFactory.normaliseObjectValue(value), empty());
     }

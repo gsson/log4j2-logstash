@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 @SuppressWarnings("serial")
-public interface Tags extends Serializable {
+public interface Tags extends Serializable, ToTags {
     default <T> void forEach(@Nullable T state, TagConsumer<T> tagConsumer) {
         forEachGroup(g -> g.forEachTagInGroup(state, tagConsumer));
     }
@@ -106,5 +106,10 @@ public interface Tags extends Serializable {
 
     static Tags empty() {
         return Tags0.EMPTY;
+    }
+
+    @Override
+    default Tags toTags() {
+        return this;
     }
 }

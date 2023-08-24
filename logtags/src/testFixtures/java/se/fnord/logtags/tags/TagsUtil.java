@@ -81,13 +81,45 @@ public class TagsUtil {
         return new Tag(key, value);
     }
 
-    public static List<Tag> collectTags(Tags tags) {
+    public static TagConsumer<List<Tag>> toListConsumer() {
+        return new ToListConsumer();
+    }
+
+    public static class ToListConsumer implements TagConsumer<List<Tag>>{
+
+        @Override
+        public void textTag(CharSequence key, CharSequence value, List<Tag> tags) {
+            tags.add(new Tag(key, value));
+        }
+
+        @Override
+        public void longTag(CharSequence key, long value, List<Tag> tags) {
+            tags.add(new Tag(key, value));
+        }
+
+        @Override
+        public void booleanTag(CharSequence key, boolean value, List<Tag> tags) {
+            tags.add(new Tag(key, value));
+        }
+
+        @Override
+        public void doubleTag(CharSequence key, double value, List<Tag> tags) {
+            tags.add(new Tag(key, value));
+        }
+
+        @Override
+        public void nullTag(CharSequence key, List<Tag> tags) {
+            tags.add(new Tag(key, null));
+        }
+    }
+
+    public static List<Tag> collectTags(ToTags tags) {
         List<Tag> tagList = new ArrayList<>();
-        tags.forEach(tagList, wrapConsumer((k, v, l) -> l.add(new Tag(k, v))));
+        tags.toTags().forEach(tagList, toListConsumer());
         return tagList;
     }
 
-    public static void assertForEach(Tags tags, Tag ... expected) {
+    public static void assertForEach(ToTags tags, Tag ... expected) {
         List<Tag> tagList = collectTags(tags);
 
         assertIterableEquals(asList(expected), tagList);

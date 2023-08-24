@@ -41,42 +41,13 @@ public class TagsUtil {
             }
         };
     }
-    public static class Tag {
-        private final CharSequence key;
-        private final Object value;
-
-        Tag(CharSequence key, Object value) {
-            this.key = key;
-            this.value = value;
-        }
-
-        public CharSequence key() {
-            return key;
-        }
-
-        public Object value() {
-            return value;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            Tag tag = (Tag) o;
-            return Objects.equals(key, tag.key) &&
-                    Objects.equals(value, tag.value);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(key, value);
-        }
-
+    public record Tag(CharSequence key, Object value) {
         @Override
         public String toString() {
             return String.format("<%s: \"%s\">", key, value);
         }
     }
+
     public static Tag tag(String key, Object value) {
         return new Tag(key, value);
     }

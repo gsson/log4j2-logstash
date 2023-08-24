@@ -100,8 +100,6 @@ configure(subprojects.findAll {it.name != 'log4j2-logstash-bom'}) {
         constraints {
             testImplementation "net.javacrumbs.json-unit:json-unit:${jsonUnit}"
             testImplementation "net.javacrumbs.json-unit:json-unit-fluent:${jsonUnit}"
-            testImplementation "org.mockito:mockito-junit-jupiter:${mockitoVersion}"
-            testImplementation "org.mockito:mockito-core:${mockitoVersion}"
 
             api("com.github.spotbugs:spotbugs-annotations:${spotbugsVersion}")
         }
@@ -123,6 +121,9 @@ configure(subprojects.findAll {it.name != 'log4j2-logstash-bom'}) {
 
         testImplementation(enforcedPlatform("com.fasterxml.jackson:jackson-bom:${jackson}"))
         testFixturesApi(platform("com.fasterxml.jackson:jackson-bom:${jackson}"))
+
+        testImplementation(enforcedPlatform("org.mockito:mockito-bom:${mockitoBomVersion}"))
+        testFixturesApi(platform("org.mockito:mockito-bom:${mockitoBomVersion}"))
 
         testImplementation(enforcedPlatform("org.junit:junit-bom:${junit5}"))
         testFixturesApi(platform("org.junit:junit-bom:${junit5}"))

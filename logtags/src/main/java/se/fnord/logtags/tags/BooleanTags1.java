@@ -25,4 +25,9 @@ class BooleanTags1 implements Tags {
     public <T> void forEachTagInGroup(T state, TagConsumer<T> tagConsumer) {
         tagConsumer.booleanTag(key, value, state);
     }
+
+    @Override
+    public String toString() {
+        return TagToString.toString(this);
+    }
 }

@@ -21,4 +21,9 @@ class CompositeTags2 implements Tags {
     @Override
     public <T> void forEachTagInGroup(T state, TagConsumer<T> tagConsumer) {
     }
+
+    @Override
+    public String toString() {
+        return TagToString.toString(this);
+    }
 }

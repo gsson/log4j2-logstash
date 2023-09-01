@@ -12,7 +12,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 public class TagOps {
-  static Tags tagsFromContext(@Nullable Function<ContextView, Tags> tagsFromContext, ContextView contextView) {
+  static Tags tagsFromContext(@Nullable Function<ContextView, Tags> tagsFromContext, @Nullable ContextView contextView) {
     if (tagsFromContext != null) {
       try {
         var tags = tagsFromContext.apply(contextView);
@@ -24,6 +24,10 @@ public class TagOps {
       }
     }
     return Tags.empty();
+  }
+
+  static Tags toTags(@Nullable ToTags toTags) {
+    return toTags == null ? Tags.empty() : toTags.toTags();
   }
 
   static String formatString(String message, Object... args) {

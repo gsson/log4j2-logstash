@@ -11,7 +11,7 @@ public class TagsMatcher implements ArgumentMatcher<Tags> {
   private final List<TagsUtil.Tag> expectedTags;
 
   public TagsMatcher(List<TagsUtil.Tag> expectedTags) {
-    this.expectedTags = expectedTags;
+    this.expectedTags = List.copyOf(expectedTags);
   }
 
   @Override

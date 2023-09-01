@@ -27,4 +27,8 @@ class TagsN implements Tags {
             tagConsumer.objectTag(keys[i], values[i], state);
         }
     }
+    @Override
+    public String toString() {
+        return TagToString.toString(this);
+    }
 }

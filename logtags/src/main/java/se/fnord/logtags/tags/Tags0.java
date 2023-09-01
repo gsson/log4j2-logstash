@@ -13,4 +13,9 @@ class Tags0 implements Tags {
     @Override
     public <T> void forEachTagInGroup(T state, TagConsumer<T> tagConsumer) {
     }
+
+    @Override
+    public String toString() {
+        return "[]";
+    }
 }

@@ -204,6 +204,7 @@ project(':log4j2-logstash-bom') {
 project(':logtags') {
     dependencies {
         testFixturesImplementation "org.junit.jupiter:junit-jupiter-api"
+        testFixturesImplementation "org.mockito:mockito-core"
 
         testImplementation "org.junit.jupiter:junit-jupiter-api"
         testImplementation "org.junit.jupiter:junit-jupiter-params"

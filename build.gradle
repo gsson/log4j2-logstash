@@ -349,6 +349,7 @@ project(':log4j2-logstash-reactor') {
         api project(":logtags")
 
         testImplementation testFixtures(project(":logtags"))
+        testImplementation "io.projectreactor:reactor-test"
         testImplementation "org.junit.jupiter:junit-jupiter-api"
         testImplementation "org.junit.jupiter:junit-jupiter-params"
         testImplementation "org.mockito:mockito-junit-jupiter"
